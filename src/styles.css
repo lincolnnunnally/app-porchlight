@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #0b120f;
+  --color-bg-2: #121c18;
+  --color-panel: #17241e;
+  --color-ink: #eef2ee;
+  --color-muted: #9aa89f;
+  --color-gold: #e6a93a;
+  --color-gold-2: #f3d48a;
+  --color-teal: #34c0ad;
+  --color-line: #2a3c34;
+  --color-danger: #d36b5a;
+  --color-watching: #7aa2c4;
+  --color-contract: #c5e07a;
+  --color-paper: #f6ecd3;
+  --color-paper-ink: #2c2416;
+  --color-night: #1a1408;
+  --color-flag: #c9a227;
+
+  --font-display: "Fraunces", "Iowan Old Style", Palatino, Georgia, serif;
+  --font-sans: "Figtree", ui-sans-serif, system-ui, sans-serif;
+
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  --shadow-lantern: 0 0 28px rgba(230, 169, 58, 0.4);
+  --shadow-soft: 0 12px 40px rgba(0, 0, 0, 0.28);
+
+  --duration-quick: 150ms;
+  --duration-fast: 250ms;
+  --duration-slow: 400ms;
+  --ease-out-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: var(--color-bg);
+    color: var(--color-ink);
+  }
+
+  body {
+    margin: 0;
+    min-height: 100%;
+    font-family: var(--font-sans);
+    background:
+      radial-gradient(1200px 520px at 50% -12%, rgba(230, 169, 58, 0.16), transparent 55%),
+      radial-gradient(800px 420px at 100% 0%, rgba(52, 192, 173, 0.08), transparent 42%),
+      var(--color-bg);
+    color: var(--color-ink);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    text-wrap: balance;
+    letter-spacing: -0.02em;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  a {
+    color: var(--color-teal);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@utility font-display {
+  font-family: var(--font-display);
+}
