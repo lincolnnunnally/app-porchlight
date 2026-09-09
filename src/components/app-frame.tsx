@@ -1,5 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Lantern } from "./lantern";
 import { useHuntStore } from "@/lib/hunt-store";
 import { useLegalStore } from "@/lib/legal-store";
@@ -105,9 +106,14 @@ function MoreMenu({
     };
 
     const onPointer = (event: PointerEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) {
-        setOpen(false);
+      const target = event.target as Node;
+      if (
+        rootRef.current?.contains(target) ||
+        panelRef.current?.contains(target)
+      ) {
+        return;
       }
+      setOpen(false);
     };
 
     document.addEventListener("keydown", onKey);
@@ -125,7 +131,7 @@ function MoreMenu({
     <div
       ref={panelRef}
       id={panelId}
-      role="menu"
+      role="dialog"
       aria-label="More doors"
       className={cn(
         "grid gap-4 rounded-xl border border-line bg-bg-2 p-4 shadow-[var(--shadow-soft)]",
@@ -146,7 +152,6 @@ function MoreMenu({
                 <Link
                   key={item.to}
                   to={item.to}
-                  role="menuitem"
                   aria-current={current ? "page" : undefined}
                   className={pillClass(current)}
                   onClick={() => setOpen(false)}
@@ -166,19 +171,22 @@ function MoreMenu({
       ref={rootRef}
       className={placement === "mobile" ? "min-w-0 flex-1" : "relative"}
     >
-      {open && placement === "mobile" ? (
-        <div
-          className="fixed inset-0 z-40 bg-night/70"
-          aria-hidden="true"
-          onClick={() => setOpen(false)}
-        />
-      ) : null}
+      {open && placement === "mobile" && typeof document !== "undefined"
+        ? createPortal(
+            <div
+              className="fixed inset-0 z-40 bg-night/70 md:hidden"
+              aria-hidden="true"
+              onClick={() => setOpen(false)}
+            />,
+            document.body,
+          )
+        : null}
       <button
         ref={buttonRef}
         type="button"
         aria-expanded={open}
         aria-controls={panelId}
-        aria-haspopup="true"
+        aria-haspopup="dialog"
         aria-label="More doors"
         className={pillClass(
           active,
@@ -188,7 +196,11 @@ function MoreMenu({
       >
         More
       </button>
-      {open ? panel : null}
+      {open
+        ? placement === "mobile" && typeof document !== "undefined"
+          ? createPortal(panel, document.body)
+          : panel
+        : null}
     </div>
   );
 }
@@ -279,9 +291,13 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
       </main>
       <nav
         aria-label="Primary"
-        className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg/95 px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur md:hidden"
+        className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-transparent px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] md:hidden"
       >
-        <div className="mx-auto flex w-full max-w-6xl items-center gap-2">
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 -z-10 bg-bg/95 backdrop-blur"
+        />
+        <div className="relative mx-auto flex w-full max-w-6xl items-center gap-2">
           <PrimaryPills pathname={pathname} compact />
           <MoreMenu pathname={pathname} placement="mobile" />
         </div>
