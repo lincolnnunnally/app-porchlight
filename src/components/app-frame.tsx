@@ -207,11 +207,9 @@ function MoreMenu({
 
 function PrimaryPills({
   pathname,
-  className,
   compact,
 }: {
   pathname: string;
-  className?: string;
   compact?: boolean;
 }) {
   return (
