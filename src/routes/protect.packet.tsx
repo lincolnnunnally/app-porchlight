@@ -63,8 +63,8 @@ function PacketPage() {
 
   const nextLabel: Partial<Record<PacketStatus, string>> = {
     draft: "Send to paralegal review",
-    paralegal: "Mark attorney signed (demo)",
-    attorney: "Mark recorded (demo)",
+    paralegal: "Mark attorney signed by hand",
+    attorney: "Mark recorded",
   };
 
   return (
@@ -73,8 +73,10 @@ function PacketPage() {
         <h1 className="font-display text-3xl">Locked templates, filled</h1>
         <p className="mt-2 max-w-2xl text-muted">
           Status moves draft → paralegal review → attorney sign → recorded.
-          Demo buttons walk the file so you can see the dashboard. In
-          production, only the law office moves those gates.
+          Signing the whole stewardship pile on the Attorney desk moves the
+          file to attorney sign. The buttons below walk the file by hand so
+          you can see the dashboard. In production, only the law office moves
+          those gates.
         </p>
       </div>
       <ol className="grid grid-cols-2 gap-2 md:grid-cols-4">

@@ -8,6 +8,8 @@ import { CopyNote } from "@/components/copy-note";
 import { Modal } from "@/components/modal";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
+import { HouseFactsSheet } from "@/components/house-facts";
+import { factsReadyForKeys } from "@/lib/house-facts";
 import {
   DEPOSIT_STATUSES,
   LEASE_STATUSES,
@@ -29,11 +31,12 @@ function LeasesPage() {
   const homes = useRentalStore((s) => s.homes);
   const leases = useRentalStore((s) => s.leases);
   const moves = useRentalStore((s) => s.moves);
+  const owners = useRentalStore((s) => s.owners);
   const upsertLease = useRentalStore((s) => s.upsertLease);
+  const ackFacts = useRentalStore((s) => s.ackFacts);
   const startMove = useRentalStore((s) => s.startMove);
   const toggleMoveItem = useRentalStore((s) => s.toggleMoveItem);
   const patchMove = useRentalStore((s) => s.patchMove);
-  const setDepositStatus = useRentalStore((s) => s.setDepositStatus);
   const [editing, setEditing] = useState<Lease | null | "new">(null);
   const [draftId, setDraftId] = useState<string | null>(null);
   const [depositId, setDepositId] = useState<string | null>(null);
@@ -80,6 +83,22 @@ function LeasesPage() {
                 {l.start} → {l.end} · {l.phone} · deposit {formatMoney(l.deposit)}{" "}
                 ({DEPOSIT_STATUSES.find((d) => d.id === l.depositStatus)?.label})
               </p>
+              {home ? (
+                <HouseFactsSheet
+                  home={home}
+                  party="owner"
+                  ackName={
+                    owners.find((o) => o.id === home.ownerId)?.name ?? "Owner"
+                  }
+                  onAck={() =>
+                    ackFacts(
+                      home.id,
+                      "owner",
+                      owners.find((o) => o.id === home.ownerId)?.name ?? "Owner",
+                    )
+                  }
+                />
+              ) : null}
               {home?.status === "occupied" ? null : (
                 <p className="text-sm text-muted">
                   Home is {home?.status ?? "unlisted"}. Occupancy starts when
@@ -124,19 +143,31 @@ function LeasesPage() {
                   <p className="text-sm font-medium">
                     {m.kind === "in" ? "Move-in" : "Move-out"} · {m.date}
                   </p>
-                  {m.items.map((item) => (
-                    <label
-                      key={item.id}
-                      className="flex min-h-11 items-center gap-2 text-sm"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={item.done}
-                        onChange={() => toggleMoveItem(m.id, item.id)}
-                      />
-                      {item.label}
-                    </label>
-                  ))}
+                  {m.items.map((item) => {
+                    const keysBlocked =
+                      m.kind === "in" &&
+                      item.id === "k" &&
+                      !item.done &&
+                      home &&
+                      !factsReadyForKeys(home);
+                    return (
+                      <label
+                        key={item.id}
+                        className="flex min-h-11 items-center gap-2 text-sm"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={item.done}
+                          disabled={Boolean(keysBlocked)}
+                          onChange={() => toggleMoveItem(m.id, item.id)}
+                        />
+                        {item.label}
+                        {keysBlocked
+                          ? " — both sides ack this facts version first"
+                          : ""}
+                      </label>
+                    );
+                  })}
                   <Field label="Condition">
                     <Textarea
                       rows={2}
@@ -151,10 +182,7 @@ function LeasesPage() {
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => {
-                          setDepositId(m.id);
-                          setDepositStatus(l.id, "returned");
-                        }}
+                        onClick={() => setDepositId(m.id)}
                       >
                         Deposit accounting draft
                       </Button>

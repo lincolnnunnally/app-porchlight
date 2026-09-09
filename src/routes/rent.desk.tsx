@@ -1,9 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { RentalDisclaimer } from "@/components/attorney-flag";
 import { CopyNote } from "@/components/copy-note";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
+import { HouseFactsSheet } from "@/components/house-facts";
 import {
   homeLabel,
   payRequestText,
@@ -11,7 +12,7 @@ import {
   receiptText,
 } from "@/lib/rental";
 import { useRentalStore } from "@/lib/rental-store";
-import { formatMoney } from "@/lib/utils";
+import { cn, formatMoney } from "@/lib/utils";
 
 export const Route = createFileRoute("/rent/desk")({ component: DeskPage });
 
@@ -26,6 +27,7 @@ function DeskPage() {
   const claimPayment = useRentalStore((s) => s.claimPayment);
   const upsertWork = useRentalStore((s) => s.upsertWork);
   const addNotice = useRentalStore((s) => s.addNotice);
+  const ackFacts = useRentalStore((s) => s.ackFacts);
   const [title, setTitle] = useState("");
   const [detail, setDetail] = useState("");
   const [sent, setSent] = useState<string | null>(null);
@@ -44,6 +46,12 @@ function DeskPage() {
       <div className="grid gap-4">
         <h1 className="font-display text-3xl">Household desk</h1>
         <p className="text-muted">No occupancy yet. Start with a lease.</p>
+        <Link
+          to="/rent/leases"
+          className={cn(buttonVariants(), "self-start no-underline")}
+        >
+          Open leases
+        </Link>
       </div>
     );
   }
@@ -78,6 +86,14 @@ function DeskPage() {
           {lease.household} · {formatMoney(lease.monthly)} / mo
         </p>
         <p className="leading-relaxed text-muted">{home?.payInstructions}</p>
+        {home ? (
+          <HouseFactsSheet
+            home={home}
+            party="renter"
+            ackName={lease.household}
+            onAck={() => ackFacts(home.id, "renter", lease.household)}
+          />
+        ) : null}
       </section>
       <section className="grid gap-3">
         <h2 className="font-display text-xl">Rent</h2>

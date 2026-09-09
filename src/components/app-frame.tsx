@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { Lantern } from "./lantern";
 import { useHuntStore } from "@/lib/hunt-store";
 import { useLegalStore } from "@/lib/legal-store";
+import { useRentalStore } from "@/lib/rental-store";
 import { useStewardStore } from "@/lib/steward-store";
 import { cn } from "@/lib/utils";
 
@@ -137,7 +138,7 @@ function MoreMenu({
         "grid gap-4 rounded-xl border border-line bg-bg-2 p-4 shadow-[var(--shadow-soft)]",
         placement === "desktop"
           ? "absolute right-0 top-full z-50 mt-2 w-64"
-          : "fixed inset-x-3 bottom-[4.75rem] z-50",
+          : "fixed inset-x-3 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-50",
       )}
     >
       {MORE_SECTIONS.map((section) => (
@@ -207,11 +208,9 @@ function MoreMenu({
 
 function PrimaryPills({
   pathname,
-  className,
   compact,
 }: {
   pathname: string;
-  className?: string;
   compact?: boolean;
 }) {
   return (
@@ -241,6 +240,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     void useHuntStore.persist.rehydrate();
     void useStewardStore.persist.rehydrate();
     void useLegalStore.persist.rehydrate();
+    void useRentalStore.persist.rehydrate();
   }, []);
 
   const pathname = useRouterState({ select: (s) => s.location.pathname });
