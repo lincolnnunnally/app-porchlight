@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { HouseFactsSheet } from "@/components/house-facts";
 import { MessageThread } from "@/components/message-thread";
 import { RentalDisclaimer } from "@/components/attorney-flag";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -76,6 +77,7 @@ function RenterSeat() {
   const setDeskLease = useRentalStore((s) => s.setDeskLease);
   const claimPayment = useRentalStore((s) => s.claimPayment);
   const upsertWork = useRentalStore((s) => s.upsertWork);
+  const ackFacts = useRentalStore((s) => s.ackFacts);
   const [title, setTitle] = useState("");
   const active = leases.filter((l) => l.status === "active" || l.status === "draft");
   const lease = active.find((l) => l.id === deskLeaseId) ?? active[0];
@@ -115,6 +117,15 @@ function RenterSeat() {
           {lease.household} · {formatMoney(lease.monthly)} / mo
         </p>
         <p className="text-sm text-muted">{home?.payInstructions}</p>
+        {home ? (
+          <HouseFactsSheet
+            home={home}
+            party="renter"
+            leaseId={lease.id}
+            ackName={lease.household}
+            onAck={() => ackFacts(home.id, "renter", lease.household, lease.id)}
+          />
+        ) : null}
       </section>
       <section className="grid gap-2">
         <h2 className="font-display text-xl">Rent</h2>
@@ -194,6 +205,7 @@ function RenterSeat() {
 function OwnerSeat() {
   const owners = useRentalStore((s) => s.owners);
   const homes = useRentalStore((s) => s.homes);
+  const leases = useRentalStore((s) => s.leases);
   const payments = useRentalStore((s) => s.payments);
   const work = useRentalStore((s) => s.work);
   const applications = useRentalStore((s) => s.applications);
@@ -204,6 +216,7 @@ function OwnerSeat() {
   const approveApplication = useRentalStore((s) => s.approveApplication);
   const askCashOut = useRentalStore((s) => s.askCashOut);
   const markCashInHunt = useRentalStore((s) => s.markCashInHunt);
+  const ackFacts = useRentalStore((s) => s.ackFacts);
   const addHouse = useHuntStore((s) => s.addHouse);
   const owner = owners.find((o) => o.id === deskOwnerId) ?? owners[0];
   const mine = homes.filter((h) => h.ownerId === owner?.id);
@@ -273,6 +286,12 @@ function OwnerSeat() {
         ) : (
           mine.map((h) => {
             const r = homeRevenue(payments, work, h.id);
+            const occupancy =
+              leases.find(
+                (l) =>
+                  l.homeId === h.id &&
+                  (l.status === "active" || l.status === "draft"),
+              ) ?? leases.find((l) => l.homeId === h.id);
             return (
               <article
                 key={h.id}
@@ -320,6 +339,13 @@ function OwnerSeat() {
                     </Select>
                   </Field>
                 </div>
+                <HouseFactsSheet
+                  home={h}
+                  party="owner"
+                  leaseId={occupancy?.id}
+                  ackName={owner.name}
+                  onAck={() => ackFacts(h.id, "owner", owner.name)}
+                />
                 <button
                   type="button"
                   className="min-h-11 self-start rounded-full border border-line px-3 text-sm"

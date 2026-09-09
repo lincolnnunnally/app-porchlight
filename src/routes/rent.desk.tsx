@@ -4,6 +4,7 @@ import { RentalDisclaimer } from "@/components/attorney-flag";
 import { CopyNote } from "@/components/copy-note";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
+import { HouseFactsSheet } from "@/components/house-facts";
 import {
   homeLabel,
   payRequestText,
@@ -26,6 +27,7 @@ function DeskPage() {
   const claimPayment = useRentalStore((s) => s.claimPayment);
   const upsertWork = useRentalStore((s) => s.upsertWork);
   const addNotice = useRentalStore((s) => s.addNotice);
+  const ackFacts = useRentalStore((s) => s.ackFacts);
   const [title, setTitle] = useState("");
   const [detail, setDetail] = useState("");
   const [sent, setSent] = useState<string | null>(null);
@@ -78,6 +80,15 @@ function DeskPage() {
           {lease.household} · {formatMoney(lease.monthly)} / mo
         </p>
         <p className="leading-relaxed text-muted">{home?.payInstructions}</p>
+        {home ? (
+          <HouseFactsSheet
+            home={home}
+            party="renter"
+            leaseId={lease.id}
+            ackName={lease.household}
+            onAck={() => ackFacts(home.id, "renter", lease.household, lease.id)}
+          />
+        ) : null}
       </section>
       <section className="grid gap-3">
         <h2 className="font-display text-xl">Rent</h2>

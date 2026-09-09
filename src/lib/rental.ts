@@ -1,3 +1,9 @@
+import {
+  type HouseFactsSpine,
+  emptyHouseFactsSpine,
+  houseFactsText,
+} from "./house-facts";
+
 export type HomeStatus = "occupied" | "vacant" | "turning";
 export type ListingStatus = "available" | "off_market";
 export type HomeIntent = "rent" | "sale" | "both";
@@ -38,7 +44,7 @@ export type RentalHome = {
   ownerId: string;
   listing: ListingStatus;
   intent: HomeIntent;
-};
+} & HouseFactsSpine;
 
 export type Owner = {
   id: string;
@@ -329,6 +335,38 @@ export const RENTAL_SEED = {
       ownerId: "o1",
       listing: "off_market" as ListingStatus,
       intent: "rent" as HomeIntent,
+      facts: {
+        wifiNetwork: "ReedPorch",
+        wifiPassword: "firstave312",
+        trashDay: "Thursday — cans to the curb by 7",
+        lawnWho: "Occupant mows. Owner handles trees and the ditch.",
+        furnished: "unfurnished",
+        utilities:
+          "Occupant: power, water, trash. Owner: taxes and insurance.",
+        renterDuties:
+          "Ordinary quiet use. Tell us when something breaks. Mow.",
+        ownerDuties: "Repairs that protect occupancy, at documented cost.",
+        rentToOwn: "",
+        propertyKind: "residential",
+      },
+      factsVersion: 1,
+      factsUpdatedAt: Date.now() - 1000 * 60 * 60 * 24 * 40,
+      factsHistory: [],
+      factsAcks: [
+        {
+          version: 1,
+          party: "owner",
+          at: Date.now() - 1000 * 60 * 60 * 24 * 40,
+          by: "Porchlight Steward",
+        },
+        {
+          version: 1,
+          party: "renter",
+          at: Date.now() - 1000 * 60 * 60 * 24 * 39,
+          by: "Reed family",
+          leaseId: "l1",
+        },
+      ],
     },
     {
       id: "r2",
@@ -344,6 +382,15 @@ export const RENTAL_SEED = {
       ownerId: "o1",
       listing: "available" as ListingStatus,
       intent: "rent" as HomeIntent,
+      ...emptyHouseFactsSpine(),
+      facts: {
+        ...emptyHouseFactsSpine().facts,
+        trashDay: "Monday — city cans",
+        lawnWho: "Hands will cut once before the walk. Then occupant.",
+        utilities: "Power on. Water honest. Occupant starts the accounts.",
+        propertyKind: "residential",
+        furnished: "unfurnished",
+      },
     },
     {
       id: "r3",
@@ -359,6 +406,7 @@ export const RENTAL_SEED = {
       ownerId: "o1",
       listing: "available" as ListingStatus,
       intent: "both" as HomeIntent,
+      ...emptyHouseFactsSpine(),
     },
   ] satisfies RentalHome[],
   leases: [
@@ -643,7 +691,9 @@ Deposit: $${lease.deposit || 0} (${lease.depositStatus})
 
 [ATTORNEY MUST APPROVE TEMPLATE TEXT BEFORE PRODUCTION]
 
-${lease.terms || ""}`;
+${lease.terms || ""}
+
+${home ? houseFactsText(home, `${home.address}, ${home.city}`) : ""}`;
 }
 
 export function receiptText(
