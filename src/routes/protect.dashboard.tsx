@@ -2,13 +2,21 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { AttorneyFlag, Disclaimer } from "@/components/attorney-flag";
 import { Button } from "@/components/ui/button";
-import { Field, Input } from "@/components/ui/field";
+import { Field, Input, Select } from "@/components/ui/field";
 import { useStewardStore } from "@/lib/steward-store";
 import { formatDate, formatMoney } from "@/lib/utils";
 
 export const Route = createFileRoute("/protect/dashboard")({
   component: DashboardPage,
 });
+
+const EXPENSE_CATEGORIES = [
+  "Repair",
+  "Taxes",
+  "Insurance",
+  "Utilities",
+  "Stewardship fee",
+] as const;
 
 function DashboardPage() {
   const status = useStewardStore((s) => s.packetStatus);
@@ -22,6 +30,7 @@ function DashboardPage() {
   const [logTitle, setLogTitle] = useState("");
   const [logDetail, setLogDetail] = useState("");
   const [payee, setPayee] = useState("");
+  const [category, setCategory] = useState<string>(EXPENSE_CATEGORIES[0]);
   const [amount, setAmount] = useState("");
   const [receipt, setReceipt] = useState("");
 
@@ -122,12 +131,12 @@ function DashboardPage() {
       <section className="grid gap-4">
         <h2 className="font-display text-xl">Expenses</h2>
         <form
-          className="grid gap-3 rounded-lg border border-line bg-panel p-4 md:grid-cols-4"
+          className="grid gap-3 rounded-lg border border-line bg-panel p-4 md:grid-cols-5"
           onSubmit={(e) => {
             e.preventDefault();
             const n = Number(amount);
             if (!payee.trim() || !Number.isFinite(n)) return;
-            addExpense(payee.trim(), "Repair", n, receipt.trim());
+            addExpense(payee.trim(), category, n, receipt.trim());
             setPayee("");
             setAmount("");
             setReceipt("");
@@ -135,6 +144,18 @@ function DashboardPage() {
         >
           <Field label="Payee">
             <Input value={payee} onChange={(e) => setPayee(e.target.value)} />
+          </Field>
+          <Field label="Category">
+            <Select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+            >
+              {EXPENSE_CATEGORIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </Select>
           </Field>
           <Field label="Amount">
             <Input

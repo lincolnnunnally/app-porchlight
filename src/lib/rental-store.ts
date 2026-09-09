@@ -524,7 +524,41 @@ export const useRentalStore = create<RentalData & RentalActions>()(
             const home = s.homes.find((h) => h.id === move.homeId);
             if (!home || !factsReadyForKeys(home)) return {};
           }
+          const checking = !item.done;
+          let leases = s.leases;
+          let homes = s.homes;
+          // Checking a checklist item moves the lease and the home with it.
+          // Unchecking only unticks the box — nothing walks backwards.
+          if (checking && move.kind === "in" && itemId === "k") {
+            leases = leases.map((l) =>
+              l.id === move.leaseId && l.status === "draft"
+                ? { ...l, status: "active" }
+                : l,
+            );
+            homes = homes.map((h) =>
+              h.id === move.homeId
+                ? { ...h, status: "occupied", listing: "off_market" }
+                : h,
+            );
+          }
+          if (checking && move.kind === "out" && itemId === "dep") {
+            leases = leases.map((l) =>
+              l.id === move.leaseId ? { ...l, depositStatus: "returned" } : l,
+            );
+          }
+          if (checking && move.kind === "out" && itemId === "vacant") {
+            leases = leases.map((l) =>
+              l.id === move.leaseId ? { ...l, status: "ended" } : l,
+            );
+            homes = homes.map((h) =>
+              h.id === move.homeId
+                ? { ...h, status: "vacant", listing: "available" }
+                : h,
+            );
+          }
           return {
+            leases,
+            homes,
             moves: s.moves.map((m) =>
               m.id === moveId
                 ? {

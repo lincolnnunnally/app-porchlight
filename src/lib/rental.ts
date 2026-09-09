@@ -607,7 +607,6 @@ export const RENTAL_SEED = {
   deskOwnerId: "o1",
 };
 
-// Fill notice body after helpers exist below via a getter on seed use.
 export function bedsOf(bedsBaths: string) {
   const n = parseInt(bedsBaths, 10);
   return Number.isFinite(n) ? n : 0;
