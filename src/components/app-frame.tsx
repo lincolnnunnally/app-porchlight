@@ -264,7 +264,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
           </div>
           <nav
             aria-label="Primary"
-            className="-mx-1 hidden gap-2 overflow-x-auto pb-1 md:flex"
+            className="-mx-1 hidden gap-2 pb-1 md:flex"
           >
             <PrimaryPills pathname={pathname} />
             <MoreMenu pathname={pathname} placement="desktop" />
