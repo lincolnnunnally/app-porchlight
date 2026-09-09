@@ -35,6 +35,15 @@ import {
   type WorkOrder,
   type WorkStatus,
 } from "./rental";
+import {
+  ackHouseFacts,
+  applyFactsAmendment,
+  factsReadyForKeys,
+  normalizeHouseFacts,
+  withHouseFactsSpine,
+  type FactsParty,
+  type HouseFacts,
+} from "./house-facts";
 import { uid } from "./utils";
 
 type RentalData = {
@@ -57,6 +66,8 @@ type RentalData = {
 
 type RentalActions = {
   upsertHome: (row: Omit<RentalHome, "id"> & { id?: string }) => string;
+  saveHouseFacts: (id: string, facts: HouseFacts) => void;
+  ackFacts: (id: string, party: FactsParty, by: string) => void;
   setHomeStatus: (id: string, status: HomeStatus) => void;
   upsertLease: (row: Omit<Lease, "id"> & { id?: string }) => string;
   setLeaseStatus: (id: string, status: LeaseStatus) => void;
@@ -125,9 +136,49 @@ export const useRentalStore = create<RentalData & RentalActions>()(
       ...EMPTY,
       upsertHome: (row) => {
         const id = row.id ?? uid("r");
-        set((s) => ({ homes: patchList(s.homes, { ...row, id }) }));
+        const prev = get().homes.find((h) => h.id === id);
+        if (!prev) {
+          const created = withHouseFactsSpine({
+            ...row,
+            id,
+            facts: normalizeHouseFacts(row.facts),
+            factsVersion: 1,
+            factsUpdatedAt: Date.now(),
+            factsHistory: [],
+            factsAcks: [],
+          });
+          set((s) => ({ homes: patchList(s.homes, created) }));
+          return id;
+        }
+        const merged = withHouseFactsSpine({ ...prev, ...row, id });
+        const next = row.facts
+          ? applyFactsAmendment(
+              {
+                ...merged,
+                facts: prev.facts,
+                factsVersion: prev.factsVersion,
+                factsUpdatedAt: prev.factsUpdatedAt,
+                factsHistory: prev.factsHistory,
+                factsAcks: prev.factsAcks,
+              },
+              row.facts,
+            )
+          : merged;
+        set((s) => ({ homes: patchList(s.homes, next) }));
         return id;
       },
+      saveHouseFacts: (id, facts) =>
+        set((s) => ({
+          homes: s.homes.map((h) =>
+            h.id === id ? applyFactsAmendment(h, facts) : h,
+          ),
+        })),
+      ackFacts: (id, party, by) =>
+        set((s) => ({
+          homes: s.homes.map((h) =>
+            h.id === id ? ackHouseFacts(h, party, by) : h,
+          ),
+        })),
       setHomeStatus: (id, status) =>
         set((s) => ({
           homes: s.homes.map((h) => (h.id === id ? { ...h, status } : h)),
@@ -464,18 +515,28 @@ export const useRentalStore = create<RentalData & RentalActions>()(
         return id;
       },
       toggleMoveItem: (moveId, itemId) =>
-        set((s) => ({
-          moves: s.moves.map((m) =>
-            m.id === moveId
-              ? {
-                  ...m,
-                  items: m.items.map((i) =>
-                    i.id === itemId ? { ...i, done: !i.done } : i,
-                  ),
-                }
-              : m,
-          ),
-        })),
+        set((s) => {
+          const move = s.moves.find((m) => m.id === moveId);
+          if (!move) return {};
+          const item = move.items.find((i) => i.id === itemId);
+          if (!item) return {};
+          if (move.kind === "in" && itemId === "k" && !item.done) {
+            const home = s.homes.find((h) => h.id === move.homeId);
+            if (!home || !factsReadyForKeys(home)) return {};
+          }
+          return {
+            moves: s.moves.map((m) =>
+              m.id === moveId
+                ? {
+                    ...m,
+                    items: m.items.map((i) =>
+                      i.id === itemId ? { ...i, done: !i.done } : i,
+                    ),
+                  }
+                : m,
+            ),
+          };
+        }),
       patchMove: (id, patch) =>
         set((s) => ({
           moves: s.moves.map((m) => (m.id === id ? { ...m, ...patch, id } : m)),
@@ -490,13 +551,16 @@ export const useRentalStore = create<RentalData & RentalActions>()(
       skipHydration: true,
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<RentalData>;
-        const homes = (p.homes ?? current.homes).map((h) => ({
-          ...h,
-          payInstructions: h.payInstructions ?? "",
-          ownerId: h.ownerId ?? "o1",
-          listing: h.listing ?? (h.status === "occupied" ? "off_market" : "available"),
-          intent: h.intent ?? "rent",
-        }));
+        const homes = (p.homes ?? current.homes).map((h) =>
+          withHouseFactsSpine({
+            ...h,
+            payInstructions: h.payInstructions ?? "",
+            ownerId: h.ownerId ?? "o1",
+            listing:
+              h.listing ?? (h.status === "occupied" ? "off_market" : "available"),
+            intent: h.intent ?? "rent",
+          }),
+        );
         const leases = (p.leases ?? current.leases).map((l) => ({
           ...l,
           depositStatus: l.depositStatus ?? ("held" as DepositStatus),
