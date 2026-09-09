@@ -21,7 +21,7 @@ export const Route = createRootRoute({
       {
         name: "description",
         content:
-          "Hunt off-market houses in Vidalia / Toombs. Help working families keep use of a home before Medicaid estate recovery becomes a crisis.",
+          "Hunt a house before it lists in Vidalia / Toombs. Help working families keep use of a home before Medicaid estate recovery becomes a crisis. Rent it fairly to a neighbor already waiting.",
       },
     ],
     links: [

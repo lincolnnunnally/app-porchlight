@@ -138,7 +138,7 @@ function MoreMenu({
         "grid gap-4 rounded-xl border border-line bg-bg-2 p-4 shadow-[var(--shadow-soft)]",
         placement === "desktop"
           ? "absolute right-0 top-full z-50 mt-2 w-64"
-          : "fixed inset-x-3 bottom-[4.75rem] z-50",
+          : "fixed inset-x-3 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-50",
       )}
     >
       {MORE_SECTIONS.map((section) => (

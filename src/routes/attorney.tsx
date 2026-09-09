@@ -12,7 +12,11 @@ import {
 } from "@/lib/legal";
 import { nextWork, useLegalStore } from "@/lib/legal-store";
 import { useStewardStore } from "@/lib/steward-store";
-import { LOCKED_TEMPLATES, type TemplateId } from "@/lib/templates";
+import {
+  LOCKED_TEMPLATES,
+  STEWARDSHIP_TEMPLATES,
+  type TemplateId,
+} from "@/lib/templates";
 import { fillTemplate } from "@/lib/templates";
 import { templateValues } from "@/lib/steward";
 import { cn } from "@/lib/utils";
@@ -33,6 +37,7 @@ function AttorneyPage() {
   const sendBack = useLegalStore((s) => s.sendBack);
   const reopen = useLegalStore((s) => s.reopen);
   const intake = useStewardStore((s) => s.intake);
+  const markAttorneySigned = useStewardStore((s) => s.markAttorneySigned);
   const [openId, setOpenId] = useState<TemplateId | null>(null);
   const [name, setName] = useState(attorneyName);
   const [bar, setBar] = useState(barNumber);
@@ -154,6 +159,10 @@ function AttorneyPage() {
                 const rest = reviews.filter(
                   (r) => r.id !== current.id && r.status !== "signed",
                 );
+                const stewardshipSigned = STEWARDSHIP_TEMPLATES.every(
+                  (t) => !rest.some((r) => r.id === t.id),
+                );
+                if (stewardshipSigned) markAttorneySigned();
                 setOpenId(rest[0]?.id ?? current.id);
               }}
             >

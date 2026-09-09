@@ -33,7 +33,7 @@ export function ProtectSubnav() {
         </p>
       </div>
       <nav
-        aria-label="Stewardship"
+        aria-label="Keep"
         className="-mx-1 flex gap-2 overflow-x-auto pb-1"
       >
         {ITEMS.map((item) => {

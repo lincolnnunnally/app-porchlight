@@ -46,7 +46,7 @@ function Home() {
             action="Search houses"
           />
           <Door
-            to="/protect"
+            to="/protect/quiz"
             icon={<Shield className="size-5" strokeWidth={1.75} />}
             kicker="Keep"
             title="Protect a home"
@@ -91,7 +91,7 @@ function Door({
   body,
   action,
 }: {
-  to: "/hunt" | "/protect" | "/rent" | "/search" | "/owners";
+  to: "/hunt" | "/protect/quiz" | "/rent" | "/search" | "/owners";
   icon: React.ReactNode;
   kicker: string;
   title: string;

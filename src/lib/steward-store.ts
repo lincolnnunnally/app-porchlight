@@ -20,6 +20,7 @@ type StewardActions = {
   acceptFees: () => void;
   generatePacket: () => boolean;
   advancePacket: () => void;
+  markAttorneySigned: () => void;
   addLog: (title: string, detail: string) => void;
   addExpense: (payee: string, category: string, amount: number, receipt: string) => void;
   setOccupancyNote: (note: string) => void;
@@ -76,6 +77,14 @@ export const useStewardStore = create<StewardState & StewardActions>()(
           set({ packetStatus: next });
         }
       },
+      // The attorney desk signs the stewardship pile; that signature is what
+      // moves the packet to "attorney". Recording stays a hand step.
+      markAttorneySigned: () =>
+        set((s) =>
+          s.packetStatus === "draft" || s.packetStatus === "paralegal"
+            ? { packetStatus: "attorney" }
+            : {},
+        ),
       addLog: (title, detail) =>
         set((s) => ({
           logs: [
