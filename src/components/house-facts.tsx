@@ -142,16 +142,20 @@ export function HouseFactsSheet({
   party,
   onAck,
   ackName,
+  leaseId,
 }: {
   home: HouseFactsSpine;
   party?: FactsParty;
   onAck?: () => void;
   ackName?: string;
+  leaseId?: string;
 }) {
   const ownerAck = factsAckFor(home, "owner");
-  const renterAck = factsAckFor(home, "renter");
-  const mine = party ? factsAckFor(home, party) : undefined;
-  const ready = factsReadyForKeys(home);
+  const renterAck = factsAckFor(home, "renter", leaseId);
+  const mine = party
+    ? factsAckFor(home, party, party === "renter" ? leaseId : undefined)
+    : undefined;
+  const ready = factsReadyForKeys(home, leaseId);
   const facts = home.facts;
 
   return (

@@ -20,6 +20,8 @@ export type FactsAck = {
   party: FactsParty;
   at: number;
   by: string;
+  /** Renter acks are per occupancy. Owner acks stay on the house version. */
+  leaseId?: string;
 };
 
 export type HouseFactsSnapshot = {
@@ -133,10 +135,13 @@ export function ackHouseFacts<T extends HouseFactsSpine>(
   party: FactsParty,
   by: string,
   at = Date.now(),
+  leaseId?: string,
 ): T {
-  const rest = home.factsAcks.filter(
-    (ack) => !(ack.version === home.factsVersion && ack.party === party),
-  );
+  const rest = home.factsAcks.filter((ack) => {
+    if (ack.version !== home.factsVersion || ack.party !== party) return true;
+    if (party === "renter") return ack.leaseId !== leaseId;
+    return false;
+  });
   return {
     ...home,
     factsAcks: [
@@ -145,20 +150,29 @@ export function ackHouseFacts<T extends HouseFactsSpine>(
         party,
         at,
         by: by.trim() || party,
+        ...(party === "renter" && leaseId ? { leaseId } : {}),
       },
       ...rest,
     ],
   };
 }
 
-export function factsAckFor(home: HouseFactsSpine, party: FactsParty) {
-  return home.factsAcks.find(
-    (ack) => ack.version === home.factsVersion && ack.party === party,
-  );
+export function factsAckFor(
+  home: HouseFactsSpine,
+  party: FactsParty,
+  leaseId?: string,
+) {
+  return home.factsAcks.find((ack) => {
+    if (ack.version !== home.factsVersion || ack.party !== party) return false;
+    if (party === "renter") return Boolean(leaseId) && ack.leaseId === leaseId;
+    return true;
+  });
 }
 
-export function factsReadyForKeys(home: HouseFactsSpine) {
-  return Boolean(factsAckFor(home, "owner") && factsAckFor(home, "renter"));
+export function factsReadyForKeys(home: HouseFactsSpine, leaseId?: string) {
+  return Boolean(
+    factsAckFor(home, "owner") && factsAckFor(home, "renter", leaseId),
+  );
 }
 
 /**

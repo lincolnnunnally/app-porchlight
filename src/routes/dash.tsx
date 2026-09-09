@@ -121,8 +121,9 @@ function RenterSeat() {
           <HouseFactsSheet
             home={home}
             party="renter"
+            leaseId={lease.id}
             ackName={lease.household}
-            onAck={() => ackFacts(home.id, "renter", lease.household)}
+            onAck={() => ackFacts(home.id, "renter", lease.household, lease.id)}
           />
         ) : null}
       </section>
@@ -204,6 +205,7 @@ function RenterSeat() {
 function OwnerSeat() {
   const owners = useRentalStore((s) => s.owners);
   const homes = useRentalStore((s) => s.homes);
+  const leases = useRentalStore((s) => s.leases);
   const payments = useRentalStore((s) => s.payments);
   const work = useRentalStore((s) => s.work);
   const applications = useRentalStore((s) => s.applications);
@@ -284,6 +286,12 @@ function OwnerSeat() {
         ) : (
           mine.map((h) => {
             const r = homeRevenue(payments, work, h.id);
+            const occupancy =
+              leases.find(
+                (l) =>
+                  l.homeId === h.id &&
+                  (l.status === "active" || l.status === "draft"),
+              ) ?? leases.find((l) => l.homeId === h.id);
             return (
               <article
                 key={h.id}
@@ -334,6 +342,7 @@ function OwnerSeat() {
                 <HouseFactsSheet
                   home={h}
                   party="owner"
+                  leaseId={occupancy?.id}
                   ackName={owner.name}
                   onAck={() => ackFacts(h.id, "owner", owner.name)}
                 />

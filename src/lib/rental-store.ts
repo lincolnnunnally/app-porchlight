@@ -67,7 +67,7 @@ type RentalData = {
 type RentalActions = {
   upsertHome: (row: Omit<RentalHome, "id"> & { id?: string }) => string;
   saveHouseFacts: (id: string, facts: HouseFacts) => void;
-  ackFacts: (id: string, party: FactsParty, by: string) => void;
+  ackFacts: (id: string, party: FactsParty, by: string, leaseId?: string) => void;
   setHomeStatus: (id: string, status: HomeStatus) => void;
   upsertLease: (row: Omit<Lease, "id"> & { id?: string }) => string;
   setLeaseStatus: (id: string, status: LeaseStatus) => void;
@@ -173,10 +173,10 @@ export const useRentalStore = create<RentalData & RentalActions>()(
             h.id === id ? applyFactsAmendment(h, facts) : h,
           ),
         })),
-      ackFacts: (id, party, by) =>
+      ackFacts: (id, party, by, leaseId) =>
         set((s) => ({
           homes: s.homes.map((h) =>
-            h.id === id ? ackHouseFacts(h, party, by) : h,
+            h.id === id ? ackHouseFacts(h, party, by, Date.now(), leaseId) : h,
           ),
         })),
       setHomeStatus: (id, status) =>
@@ -522,7 +522,7 @@ export const useRentalStore = create<RentalData & RentalActions>()(
           if (!item) return {};
           if (move.kind === "in" && itemId === "k" && !item.done) {
             const home = s.homes.find((h) => h.id === move.homeId);
-            if (!home || !factsReadyForKeys(home)) return {};
+            if (!home || !factsReadyForKeys(home, move.leaseId)) return {};
           }
           return {
             moves: s.moves.map((m) =>

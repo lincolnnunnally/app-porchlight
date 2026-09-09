@@ -364,6 +364,7 @@ export const RENTAL_SEED = {
           party: "renter",
           at: Date.now() - 1000 * 60 * 60 * 24 * 39,
           by: "Reed family",
+          leaseId: "l1",
         },
       ],
     },

@@ -88,6 +88,7 @@ function LeasesPage() {
                 <HouseFactsSheet
                   home={home}
                   party="owner"
+                  leaseId={l.id}
                   ackName={
                     owners.find((o) => o.id === home.ownerId)?.name ?? "Owner"
                   }
@@ -150,7 +151,7 @@ function LeasesPage() {
                       item.id === "k" &&
                       !item.done &&
                       home &&
-                      !factsReadyForKeys(home);
+                      !factsReadyForKeys(home, l.id);
                     return (
                       <label
                         key={item.id}

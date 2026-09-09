@@ -84,8 +84,9 @@ function DeskPage() {
           <HouseFactsSheet
             home={home}
             party="renter"
+            leaseId={lease.id}
             ackName={lease.household}
-            onAck={() => ackFacts(home.id, "renter", lease.household)}
+            onAck={() => ackFacts(home.id, "renter", lease.household, lease.id)}
           />
         ) : null}
       </section>
