@@ -32,10 +32,15 @@ export function EnterPlaceForm({ compact }: { compact?: boolean }) {
           owner: "unknown",
           bedsBaths: "",
           offer: "",
-          notes: "",
+          notes:
+            purpose === "donate"
+              ? "Gift intent — not a tax receipt. Attorney still papers the deed."
+              : purpose === "protect"
+                ? "Keep-use planning. Attorney still signs. We do not take the house."
+                : "",
           stage: "watching",
         });
-        if (purpose === "rent") {
+        if (purpose === "rent" || purpose === "live") {
           upsertHome({
             id,
             address: street,
@@ -47,7 +52,7 @@ export function EnterPlaceForm({ compact }: { compact?: boolean }) {
             payInstructions: "We'll set this together.",
             ownerId: "o1",
             listing: "off_market",
-            intent: "rent",
+            intent: purpose === "live" ? "both" : "rent",
           });
         }
         void navigate({

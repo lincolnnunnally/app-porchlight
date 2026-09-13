@@ -71,8 +71,9 @@ function HuntPage() {
                       }
                       onLetter={() =>
                         navigate({
-                          to: "/letters",
-                          search: { house: h.id },
+                          to: "/place/$placeId",
+                          params: { placeId: h.id },
+                          search: { want: "sell" },
                         })
                       }
                     />

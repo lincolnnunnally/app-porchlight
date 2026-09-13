@@ -56,7 +56,11 @@ function HousesPage() {
                 })
               }
               onLetter={() =>
-                navigate({ to: "/letters", search: { house: h.id } })
+                navigate({
+                  to: "/place/$placeId",
+                  params: { placeId: h.id },
+                  search: { want: "sell" },
+                })
               }
             />
           ))}

@@ -26,6 +26,8 @@ export type House = {
   offer: string;
   notes: string;
   stage: HuntStage;
+  /** Curated sample on this device — not a real hunt. */
+  sample?: boolean;
 };
 
 export type Letter = {
@@ -45,6 +47,7 @@ export const HUNT_SEED: House[] = [
     notes:
       "Vacant looking. Porch light still on at noon. Ask around the block before a letter.",
     stage: "watching",
+    sample: true,
   },
   {
     id: "h2",
@@ -56,6 +59,7 @@ export const HUNT_SEED: House[] = [
     notes:
       "Big shade trees. Needs paint and a patient kitchen. Could live in it.",
     stage: "letter",
+    sample: true,
   },
   {
     id: "h3",
@@ -67,6 +71,7 @@ export const HUNT_SEED: House[] = [
     notes:
       "She mentioned wanting to be nearer her daughter. Keep it human.",
     stage: "talking",
+    sample: true,
   },
   {
     id: "h4",
@@ -78,6 +83,7 @@ export const HUNT_SEED: House[] = [
     notes:
       "Not pretty. Good bones if the well is honest. Hunt, don't rush.",
     stage: "watching",
+    sample: true,
   },
 ];
 

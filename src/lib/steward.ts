@@ -15,6 +15,8 @@ export type Intake = {
   ageRange: string;
   county: string;
   address: string;
+  /** House record this intake belongs to, when Keep started from a place. */
+  placeId?: string;
   deed: string;
   whoLives: string;
   spouse: string;
@@ -41,6 +43,7 @@ export const EMPTY_INTAKE: Intake = {
   ageRange: "60-75",
   county: "Toombs",
   address: "",
+  placeId: "",
   deed: "unknown",
   whoLives: "",
   spouse: "no",

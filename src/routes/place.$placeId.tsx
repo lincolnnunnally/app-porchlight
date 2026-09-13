@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { HouseFactsFields, HouseFactsSheet } from "@/components/house-facts";
 import { HouseForm } from "@/components/house-form";
+import { HouseNext } from "@/components/house-next";
 import { HouseOperate } from "@/components/house-operate";
 import { Modal } from "@/components/modal";
 import { PropertyLookups } from "@/components/property-lookups";
@@ -91,6 +92,20 @@ function PlacePage() {
     setFactsSaved(false);
   }, [place?.rent]);
 
+  useEffect(() => {
+    if (
+      want === "sell" ||
+      want === "protect" ||
+      want === "donate" ||
+      want === "live"
+    ) {
+      document.getElementById("next-step")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  }, [want]);
+
   if (!place && !hydrated) {
     return <p className="text-muted">Opening the notebook…</p>;
   }
@@ -136,6 +151,7 @@ function PlacePage() {
   }
 
   function watchAsHunt() {
+    if (useHuntStore.getState().houses.some((h) => h.id === placeId)) return;
     addHouse({
       id: placeId,
       address,
@@ -165,10 +181,10 @@ function PlacePage() {
               ? ` · ${HOME_STATUSES.find((s) => s.id === rent.status)?.label}`
               : ""}
           </p>
-          {rent?.sample ? (
+          {rent?.sample || hunt?.sample ? (
             <p className="mt-2 text-sm text-gold-2">
-              Sample on this device — not a real occupancy. Your own addresses
-              are yours.
+              Sample on this device — not a real occupancy or hunt. Your own
+              addresses are yours.
             </p>
           ) : null}
         </div>
@@ -205,19 +221,15 @@ function PlacePage() {
         </nav>
       ) : null}
 
-      {want === "donate" ? <DonateNote /> : null}
-      {want === "protect" ? (
-        <NextNote>
-          Occupancy stays with the person who lives there. Start the season
-          on Keep — an attorney still signs, and we never take the house.
-          <Link
-            to="/protect"
-            className={cn(buttonVariants({ size: "sm" }), "mt-3 no-underline")}
-          >
-            Open Keep
-          </Link>
-        </NextNote>
-      ) : null}
+      <HouseNext
+        want={want}
+        placeId={placeId}
+        address={address}
+        city={city}
+        hunt={hunt}
+        ensureHunt={watchAsHunt}
+        ensureRent={operateAsRental}
+      />
 
       <section className="grid gap-3">
         <h2 className="font-display text-2xl">What you can do</h2>
@@ -242,17 +254,26 @@ function PlacePage() {
             title="Sell without a listing machine"
             body="Write a letter the owner would actually want to read. Cash as-is if that's the truth."
             action="Write a letter"
-            href="/letters"
-            search={{ house: hunt?.id ?? placeId }}
             onClick={() => {
               if (!hunt) watchAsHunt();
+              void navigate({
+                to: "/place/$placeId",
+                params: { placeId },
+                search: { want: "sell" },
+              });
             }}
           />
           <IdeaCard
             title="Keep use of the home"
             body="If Medicaid estate recovery is a worry, plan while someone is still well."
             action="Start with the season"
-            href="/protect"
+            onClick={() =>
+              void navigate({
+                to: "/place/$placeId",
+                params: { placeId },
+                search: { want: "protect" },
+              })
+            }
           />
           <IdeaCard
             title="Donate the property"
@@ -269,8 +290,15 @@ function PlacePage() {
           <IdeaCard
             title="I want to live here"
             body="Fair rent, or a house that still needs hands. Ask to be told when the light is on."
-            action="Find a place"
-            href="/search"
+            action="Ask to be told"
+            onClick={() => {
+              if (!rent) operateAsRental();
+              void navigate({
+                to: "/place/$placeId",
+                params: { placeId },
+                search: { want: "live" },
+              });
+            }}
           />
         </div>
       </section>
@@ -301,13 +329,17 @@ function PlacePage() {
               ))}
             </Select>
           </Field>
-          <Link
-            to="/letters"
-            search={{ house: hunt.id }}
-            className={cn(buttonVariants(), "no-underline self-start")}
+          <Button
+            onClick={() =>
+              void navigate({
+                to: "/place/$placeId",
+                params: { placeId },
+                search: { want: "sell" },
+              })
+            }
           >
             Write a letter
-          </Link>
+          </Button>
         </section>
       ) : (
         <Button variant="ghost" onClick={watchAsHunt}>
@@ -446,86 +478,24 @@ function IdeaCard({
   title,
   body,
   action,
-  href,
-  search,
   onClick,
 }: {
   title: string;
   body: string;
   action: string;
-  href?: "/rent" | "/letters" | "/protect" | "/search";
-  search?: { house: string };
-  onClick?: () => void;
+  onClick: () => void;
 }) {
-  const className =
-    "flex min-w-[16.5rem] max-w-[22rem] flex-1 flex-col gap-2 rounded-xl border border-line bg-bg-2 p-5 text-ink no-underline";
-  const inner = (
-    <>
+  return (
+    <button
+      type="button"
+      className="flex min-w-[16.5rem] max-w-[22rem] flex-1 flex-col gap-2 rounded-xl border border-line bg-bg-2 p-5 text-left text-ink"
+      onClick={onClick}
+    >
       <h3 className="font-display text-xl">{title}</h3>
       <p className="flex-1 text-sm leading-relaxed text-muted">{body}</p>
       <span className={cn(buttonVariants({ size: "sm" }), "self-start")}>
         {action}
       </span>
-    </>
-  );
-  if (href) {
-    return (
-      <Link
-        to={href}
-        search={search}
-        className={className}
-        onClick={onClick}
-      >
-        {inner}
-      </Link>
-    );
-  }
-  return (
-    <button type="button" className={`${className} text-left`} onClick={onClick}>
-      {inner}
     </button>
-  );
-}
-
-function NextNote({ children }: { children: React.ReactNode }) {
-  return (
-    <aside className="grid gap-2 rounded-xl border border-gold/40 bg-panel p-5 text-sm leading-relaxed">
-      {children}
-    </aside>
-  );
-}
-
-function DonateNote() {
-  return (
-    <NextNote>
-      <h2 className="font-display text-2xl">Give the house so someone can live there</h2>
-      <p>
-        A donated house can become a home for a family who will keep the porch
-        light on. A gift to a 501(c)(3) is a legal act. We do not issue a tax
-        receipt from this screen, and we do not promise a deduction. An
-        attorney still papers the deed.
-      </p>
-      <p>
-        If that is what you want, tell us on Connectors or sit with Keep. We
-        will walk it with you. We do not take houses.
-      </p>
-      <div className="flex flex-wrap gap-2 pt-1">
-        <Link
-          to="/connect"
-          className={cn(buttonVariants({ size: "sm" }), "no-underline")}
-        >
-          Ask a connector
-        </Link>
-        <Link
-          to="/protect"
-          className={cn(
-            buttonVariants({ variant: "ghost", size: "sm" }),
-            "no-underline",
-          )}
-        >
-          Sit with Keep first
-        </Link>
-      </div>
-    </NextNote>
   );
 }
