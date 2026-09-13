@@ -159,6 +159,7 @@ function SearchPage() {
                 <p className="text-xs tracking-wide text-teal uppercase">
                   {h.status} · {h.intent === "both" ? "rent or sale" : h.intent}{" "}
                   · {listed.propertyKind} · {listed.furnished}
+                  {h.sample ? " · sample" : ""}
                 </p>
                 <h3 className="font-display text-xl">{h.address}</h3>
                 <p className="text-sm text-muted">
@@ -224,6 +225,7 @@ function SearchPage() {
                 >
                   <p className="text-xs tracking-wide text-gold-2 uppercase">
                     {h.stage} · {h.offer || "talk first"}
+                    {h.sample ? " · sample" : ""}
                   </p>
                   <h3 className="font-display text-xl">{h.address}</h3>
                   <p className="text-sm text-muted">
@@ -242,8 +244,9 @@ function SearchPage() {
                       Open the house
                     </Link>
                     <Link
-                      to="/letters"
-                      search={{ house: h.id }}
+                      to="/place/$placeId"
+                      params={{ placeId: h.id }}
+                      search={{ want: "sell" }}
                       className={cn(
                         buttonVariants({ variant: "ghost" }),
                         "no-underline",

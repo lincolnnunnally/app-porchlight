@@ -54,6 +54,19 @@ function IntakePage() {
         We fill attorney-approved templates with what you tell us. Title is not
         verified here. An attorney still has to look.
       </p>
+      {intake.placeId && intake.address ? (
+        <p className="rounded-lg border border-gold/40 bg-panel px-4 py-3 text-sm">
+          House on this notebook: {intake.address}.{" "}
+          <Link
+            to="/place/$placeId"
+            params={{ placeId: intake.placeId }}
+            search={{ want: "protect" }}
+            className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "no-underline")}
+          >
+            Back to the house
+          </Link>
+        </p>
+      ) : null}
       <AttorneyFlag>
         Intake copy and field list need attorney sign-off before production.
         No hidden “we’ll take the house” language belongs anywhere on this

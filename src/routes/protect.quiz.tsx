@@ -1,12 +1,21 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Choice } from "@/components/choice";
 import { AttorneyFlag } from "@/components/attorney-flag";
 import { Button } from "@/components/ui/button";
+import { useHuntStore } from "@/lib/hunt-store";
+import { countyNameForIntake, protectHouseAddress } from "@/lib/next-steps";
+import { findPlace } from "@/lib/place";
+import { useRentalStore } from "@/lib/rental-store";
 import type { QuizAnswers } from "@/lib/steward";
 import { useStewardStore } from "@/lib/steward-store";
 
+type Search = { place?: string };
+
 export const Route = createFileRoute("/protect/quiz")({
+  validateSearch: (s: Record<string, unknown>): Search => ({
+    place: typeof s.place === "string" && s.place ? s.place : undefined,
+  }),
   component: QuizPage,
 });
 
@@ -75,9 +84,25 @@ function QuizPage() {
   const quiz = useStewardStore((s) => s.quiz);
   const setQuiz = useStewardStore((s) => s.setQuiz);
   const finishQuiz = useStewardStore((s) => s.finishQuiz);
+  const setIntake = useStewardStore((s) => s.setIntake);
+  const houses = useHuntStore((s) => s.houses);
+  const homes = useRentalStore((s) => s.homes);
+  const { place: placeId } = Route.useSearch();
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const current = STEPS[step];
+  const bound = placeId ? findPlace(placeId, houses, homes) : null;
+  const boundAddress = bound?.address;
+  const boundCity = bound?.city;
+
+  useEffect(() => {
+    if (!placeId || !boundAddress || !boundCity) return;
+    setIntake({
+      placeId,
+      address: protectHouseAddress(boundAddress, boundCity),
+      county: countyNameForIntake(boundCity),
+    });
+  }, [placeId, boundAddress, boundCity, setIntake]);
   const value = quiz[current.key];
   const last = step === STEPS.length - 1;
 
@@ -114,6 +139,11 @@ function QuizPage() {
           />
         </div>
       </div>
+      {bound ? (
+        <p className="text-sm text-muted">
+          This is for {bound.address}, {bound.city}.
+        </p>
+      ) : null}
       <h1 className="font-display text-3xl leading-tight">{current.question}</h1>
       <div className="grid gap-2">
         {current.options.map((o) => (

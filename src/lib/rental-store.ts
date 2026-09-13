@@ -873,6 +873,7 @@ export const useRentalStore = create<RentalData & RentalActions>()(
               h.listing ?? (h.status === "occupied" ? "off_market" : "available"),
             intent: h.intent ?? "rent",
             statusChangedAt: h.statusChangedAt ?? seeded?.statusChangedAt ?? null,
+            sample: h.sample ?? seeded?.sample,
             factsAcks: mergeFactsAcks(
               h.factsAcks ?? [],
               seeded?.factsAcks ?? [],

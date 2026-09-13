@@ -47,6 +47,20 @@ export const useHuntStore = create<HuntState>()(
       storage: createJSONStorage(() => localStorage),
       skipHydration: true,
       partialize: (s) => ({ houses: s.houses, letters: s.letters }),
+      merge: (persisted, current) => {
+        const p = (persisted ?? {}) as Partial<
+          Pick<HuntState, "houses" | "letters">
+        >;
+        const houses = (p.houses ?? current.houses).map((h) => {
+          const seeded = current.houses.find((row) => row.id === h.id);
+          return { ...h, sample: h.sample ?? seeded?.sample };
+        });
+        return {
+          ...current,
+          houses,
+          letters: p.letters ?? current.letters,
+        };
+      },
     },
   ),
 );

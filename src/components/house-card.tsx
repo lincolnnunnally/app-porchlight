@@ -27,14 +27,21 @@ export function HouseCard({
       draggable={draggable}
       onDragStart={onDragStart}
     >
-      <span
-        className={cn(
-          "inline-flex w-fit rounded-full border px-2 py-0.5 text-[0.7rem] tracking-wide uppercase",
-          chip[house.stage] ?? "text-gold-2 border-line",
-        )}
-      >
-        {stageLabel(house.stage)}
-      </span>
+      <div className="flex flex-wrap gap-1.5">
+        <span
+          className={cn(
+            "inline-flex w-fit rounded-full border px-2 py-0.5 text-[0.7rem] tracking-wide uppercase",
+            chip[house.stage] ?? "text-gold-2 border-line",
+          )}
+        >
+          {stageLabel(house.stage)}
+        </span>
+        {house.sample ? (
+          <span className="inline-flex w-fit rounded-full border border-gold/40 px-2 py-0.5 text-[0.7rem] tracking-wide uppercase text-gold-2">
+            Sample
+          </span>
+        ) : null}
+      </div>
       <h3 className="font-display text-lg leading-snug">{house.address}</h3>
       <p className="text-sm text-muted">
         {house.city} · {house.bedsBaths || "—"} · {house.offer || "offer TBD"}
