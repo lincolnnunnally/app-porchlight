@@ -38,7 +38,6 @@ function LeasesPage() {
   const startNextOccupancy = useRentalStore((s) => s.startNextOccupancy);
   const toggleMoveItem = useRentalStore((s) => s.toggleMoveItem);
   const patchMove = useRentalStore((s) => s.patchMove);
-  const setDepositStatus = useRentalStore((s) => s.setDepositStatus);
   const [editing, setEditing] = useState<Lease | null | "new">(null);
   const [draftId, setDraftId] = useState<string | null>(null);
   const [depositId, setDepositId] = useState<string | null>(null);
@@ -209,10 +208,7 @@ function LeasesPage() {
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => {
-                          setDepositId(m.id);
-                          setDepositStatus(l.id, "returned");
-                        }}
+                        onClick={() => setDepositId(m.id)}
                       >
                         Deposit accounting draft
                       </Button>
