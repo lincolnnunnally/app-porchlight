@@ -243,7 +243,6 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     void useRentalStore.persist.rehydrate();
     void useStewardStore.persist.rehydrate();
     void useLegalStore.persist.rehydrate();
-    void useRentalStore.persist.rehydrate();
   }, []);
 
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -308,9 +307,17 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
       <footer className="border-t border-line pb-24 md:pb-0">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-4 py-6 text-sm text-muted sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <p>People are the purpose. We do not take houses.</p>
-          <Link to="/packet" className="text-muted hover:text-gold-2">
-            vNext packet
-          </Link>
+          <p className="flex flex-wrap gap-3">
+            <Link to="/privacy" className="text-muted hover:text-gold-2">
+              Privacy
+            </Link>
+            <Link to="/terms" className="text-muted hover:text-gold-2">
+              Terms
+            </Link>
+            <Link to="/packet" className="text-muted hover:text-gold-2">
+              vNext packet
+            </Link>
+          </p>
         </div>
       </footer>
     </div>

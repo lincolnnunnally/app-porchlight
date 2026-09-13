@@ -4,6 +4,7 @@ import { CopyNote } from "@/components/copy-note";
 import { Modal } from "@/components/modal";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
+import { bestHomesFor } from "@/lib/match";
 import {
   WAIT_STATUSES,
   homeLabel,
@@ -12,7 +13,7 @@ import {
   type WaitStatus,
 } from "@/lib/rental";
 import { useRentalStore } from "@/lib/rental-store";
-import { formatDate } from "@/lib/utils";
+import { cn, formatDate, formatMoney } from "@/lib/utils";
 
 export const Route = createFileRoute("/rent/waitlist")({
   component: WaitlistPage,
@@ -50,7 +51,9 @@ function WaitlistPage() {
         </p>
       ) : null}
       <div className="grid gap-3">
-        {waitlist.map((p) => (
+        {waitlist.map((p) => {
+          const fits = bestHomesFor(p, homes).slice(0, 2);
+          return (
           <article
             key={p.id}
             className="grid gap-2 rounded-lg border border-line bg-panel p-5"
@@ -86,6 +89,50 @@ function WaitlistPage() {
             {p.notes ? (
               <p className="text-sm leading-relaxed text-muted">{p.notes}</p>
             ) : null}
+            {p.status !== "housed" && p.status !== "passed" ? (
+              <div className="grid gap-1 rounded-md border border-line bg-bg-2 px-3 py-2 text-sm">
+                <p className="text-xs tracking-wide text-gold-2 uppercase">
+                  {fits.length ? "Best fit on the porch" : "Nothing on the porch fits yet"}
+                </p>
+                {fits.map(({ home, match }) => (
+                  <div key={home.id} className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span
+                      className={cn(
+                        "rounded-full border px-2 py-0.5 text-xs uppercase",
+                        match.fit === "strong"
+                          ? "border-teal/50 text-teal"
+                          : match.fit === "fair"
+                            ? "border-gold/50 text-gold-2"
+                            : "border-line text-muted",
+                      )}
+                    >
+                      {match.fit}
+                    </span>
+                    <span>
+                      {home.address}, {home.city} · {home.bedsBaths} ·{" "}
+                      {formatMoney(home.fairRent)}
+                    </span>
+                    <span className="text-muted">
+                      {[...match.reasons, ...match.blockers.map((b) => `but ${b}`)].join(" · ")}
+                    </span>
+                    {!p.homeId ? (
+                      <button
+                        type="button"
+                        className="min-h-8 rounded-full border border-line px-2 text-xs"
+                        onClick={() => upsertWait({ ...p, homeId: home.id })}
+                      >
+                        Point them at this house
+                      </button>
+                    ) : null}
+                  </div>
+                ))}
+                {!fits.length ? (
+                  <p className="text-muted">
+                    Keep them warm. When a light comes on that fits, they show up here.
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
@@ -108,7 +155,8 @@ function WaitlistPage() {
               ) : null}
             </div>
           </article>
-        ))}
+          );
+        })}
       </div>
       {person ? (
         <CopyNote

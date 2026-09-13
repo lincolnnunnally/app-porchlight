@@ -1,8 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { HouseFactsSheet } from "@/components/house-facts";
+import { HouseholdRent } from "@/components/household-rent";
+import { HouseholdWork } from "@/components/household-work";
 import { MessageThread } from "@/components/message-thread";
+import { ObjectionNote } from "@/components/objection";
 import { RentalDisclaimer } from "@/components/attorney-flag";
+import { VacancyNudges } from "@/components/vacancy-nudge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { useHuntStore } from "@/lib/hunt-store";
@@ -12,6 +16,7 @@ import {
   SEATS,
   homeLabel,
   homeRevenue,
+  objectionOpen,
   ownerLabel,
   periodLabel,
   type CashKind,
@@ -70,21 +75,15 @@ function DashPage() {
 
 function RenterSeat() {
   const homes = useRentalStore((s) => s.homes);
+  const owners = useRentalStore((s) => s.owners);
   const leases = useRentalStore((s) => s.leases);
-  const payments = useRentalStore((s) => s.payments);
-  const work = useRentalStore((s) => s.work);
   const deskLeaseId = useRentalStore((s) => s.deskLeaseId);
   const setDeskLease = useRentalStore((s) => s.setDeskLease);
-  const claimPayment = useRentalStore((s) => s.claimPayment);
-  const upsertWork = useRentalStore((s) => s.upsertWork);
   const ackFacts = useRentalStore((s) => s.ackFacts);
-  const [title, setTitle] = useState("");
   const active = leases.filter((l) => l.status === "active" || l.status === "draft");
   const lease = active.find((l) => l.id === deskLeaseId) ?? active[0];
   const home = homes.find((h) => h.id === lease?.homeId);
-  const due = payments.filter(
-    (p) => p.leaseId === lease?.id && (p.status === "due" || p.status === "late"),
-  );
+  const owner = owners.find((o) => o.id === home?.ownerId);
 
   if (!lease) {
     return (
@@ -117,6 +116,12 @@ function RenterSeat() {
           {lease.household} · {formatMoney(lease.monthly)} / mo
         </p>
         <p className="text-sm text-muted">{home?.payInstructions}</p>
+        {owner ? (
+          <p className="text-sm">
+            Owner: {owner.name}
+            {owner.phone ? ` · ${owner.phone}` : ""}
+          </p>
+        ) : null}
         {home ? (
           <HouseFactsSheet
             home={home}
@@ -127,70 +132,8 @@ function RenterSeat() {
           />
         ) : null}
       </section>
-      <section className="grid gap-2">
-        <h2 className="font-display text-xl">Rent</h2>
-        {due.length === 0 ? (
-          <p className="text-sm text-muted">Nothing due right now.</p>
-        ) : (
-          due.map((p) => (
-            <article
-              key={p.id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line bg-panel p-4"
-            >
-              <p>
-                {periodLabel(p.period)} · {formatMoney(p.amount)}
-                {p.claimedAt ? " · you told us you paid" : ""}
-              </p>
-              {!p.claimedAt ? (
-                <Button size="sm" onClick={() => claimPayment(p.id)}>
-                  I paid this
-                </Button>
-              ) : null}
-            </article>
-          ))
-        )}
-      </section>
-      <form
-        className="grid gap-3 rounded-xl border border-line bg-panel p-5"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (!title.trim()) return;
-          upsertWork({
-            homeId: lease.homeId,
-            title,
-            detail: "",
-            status: "needed",
-            cost: 0,
-            who: lease.household,
-            vendorId: "",
-            scheduledAt: null,
-          });
-          setTitle("");
-        }}
-      >
-        <h2 className="font-display text-xl">Something needs hands</h2>
-        <Field label="What is wrong">
-          <Input
-            value={title}
-            placeholder="Sink drip"
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </Field>
-        <Button type="submit" variant="teal">
-          Ask for the work
-        </Button>
-        {work.filter((w) => w.homeId === lease.homeId).length ? (
-          <ul className="text-sm text-muted">
-            {work
-              .filter((w) => w.homeId === lease.homeId)
-              .map((w) => (
-                <li key={w.id}>
-                  {w.title} · {w.status}
-                </li>
-              ))}
-          </ul>
-        ) : null}
-      </form>
+      <HouseholdRent lease={lease} home={home} />
+      <HouseholdWork homeId={lease.homeId} who={lease.household} compact />
       <MessageThread homeId={lease.homeId} from="renter" />
       <Link
         to="/search"
@@ -292,6 +235,9 @@ function OwnerSeat() {
                   l.homeId === h.id &&
                   (l.status === "active" || l.status === "draft"),
               ) ?? leases.find((l) => l.homeId === h.id);
+            const waitingOnAnswer =
+              payments.filter((p) => p.homeId === h.id && objectionOpen(p)).length +
+              work.filter((w) => w.homeId === h.id && objectionOpen(w)).length;
             return (
               <article
                 key={h.id}
@@ -309,6 +255,14 @@ function OwnerSeat() {
                     Net {formatMoney(r.net)}
                   </p>
                 </div>
+                <p className="text-sm text-muted">
+                  {occupancy
+                    ? `${occupancy.household}${occupancy.phone ? ` · ${occupancy.phone}` : ""} · lease ${occupancy.status}`
+                    : "No household yet."}
+                  {waitingOnAnswer
+                    ? ` · ${waitingOnAnswer} question${waitingOnAnswer === 1 ? "" : "s"} waiting on the manager`
+                    : ""}
+                </p>
                 <div className="grid gap-2 sm:grid-cols-2">
                   <Field label="Market">
                     <Select
@@ -503,9 +457,52 @@ function ManagerSeat() {
   const pending = applications.filter(
     (a) => a.status !== "housed" && a.status !== "passed",
   );
+  const questions = [
+    ...payments
+      .filter((p) => objectionOpen(p))
+      .map((p) => ({
+        id: p.id,
+        homeId: p.homeId,
+        what: `${periodLabel(p.period)} rent · ${formatMoney(p.amount)}`,
+        objection: p.objection,
+        href: "/rent/payments" as const,
+      })),
+    ...work
+      .filter((w) => objectionOpen(w))
+      .map((w) => ({
+        id: w.id,
+        homeId: w.homeId,
+        what: w.title,
+        objection: w.objection,
+        href: "/rent/work" as const,
+      })),
+  ];
 
   return (
     <div className="grid gap-6">
+      <VacancyNudges />
+      {questions.length ? (
+        <section className="grid gap-2">
+          <h2 className="font-display text-xl">Questions waiting on you</h2>
+          {questions.map((q) => (
+            <article
+              key={q.id}
+              className="grid gap-2 rounded-lg border border-gold/50 bg-panel p-4"
+            >
+              <p className="text-sm">
+                {q.what} · {homeLabel(homes, q.homeId)}
+              </p>
+              <ObjectionNote objection={q.objection} />
+              <Link
+                to={q.href}
+                className={cn(buttonVariants({ variant: "teal", size: "sm" }), "self-start no-underline")}
+              >
+                Answer on {q.href === "/rent/payments" ? "Payments" : "Work"}
+              </Link>
+            </article>
+          ))}
+        </section>
+      ) : null}
       <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Stat label="Homes" value={String(homes.length)} />
         <Stat label="Rent due" value={String(due.length)} />

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { AttorneyFlag, RentalDisclaimer } from "@/components/attorney-flag";
 import { CopyNote } from "@/components/copy-note";
 import { Modal } from "@/components/modal";
+import { AnswerObjection, ObjectionNote } from "@/components/objection";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select } from "@/components/ui/field";
 import {
@@ -10,6 +11,7 @@ import {
   PAY_STATUSES,
   demandDraftText,
   homeLabel,
+  objectionOpen,
   payRequestText,
   periodKey,
   periodLabel,
@@ -20,7 +22,7 @@ import {
   type Payment,
 } from "@/lib/rental";
 import { useRentalStore } from "@/lib/rental-store";
-import { formatDate, formatMoney } from "@/lib/utils";
+import { cn, formatDate, formatMoney } from "@/lib/utils";
 
 export const Route = createFileRoute("/rent/payments")({
   component: PaymentsPage,
@@ -36,6 +38,7 @@ function PaymentsPage() {
   const setPayMethod = useRentalStore((s) => s.setPayMethod);
   const generateDues = useRentalStore((s) => s.generateDues);
   const addNotice = useRentalStore((s) => s.addNotice);
+  const answerPayment = useRentalStore((s) => s.answerPayment);
   const [open, setOpen] = useState(false);
   const [paper, setPaper] = useState<string | null>(null);
   const [added, setAdded] = useState<string | null>(null);
@@ -46,6 +49,7 @@ function PaymentsPage() {
   const outstanding = payments
     .filter((p) => p.status === "due" || p.status === "late")
     .reduce((n, p) => n + p.amount, 0);
+  const questions = payments.filter((p) => objectionOpen(p)).length;
 
   function paperFor(
     kind: "receipt" | "pay_request" | "reminder" | "demand_draft",
@@ -73,8 +77,8 @@ function PaymentsPage() {
           <h1 className="font-display text-3xl">Payments</h1>
           <p className="mt-1 max-w-2xl text-muted">
             A ledger, not a processor. Mark what came in. Talk first if a week
-            is hard. Household can claim a payment from the desk; you confirm
-            it here.
+            is hard. Household can claim a payment from the desk, or say a
+            charge is off; you confirm or answer it here.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -93,7 +97,7 @@ function PaymentsPage() {
         </div>
       </div>
       {added ? <p className="text-sm text-teal">{added}</p> : null}
-      <section className="grid grid-cols-2 gap-3">
+      <section className="grid grid-cols-3 gap-3">
         <div className="rounded-lg border border-line bg-panel px-4 py-3">
           <p className="text-sm text-muted">Received</p>
           <p className="font-display text-2xl text-gold-2">
@@ -105,6 +109,15 @@ function PaymentsPage() {
           <p className="font-display text-2xl text-gold-2">
             {formatMoney(outstanding)}
           </p>
+        </div>
+        <div
+          className={cn(
+            "rounded-lg border bg-panel px-4 py-3",
+            questions ? "border-gold/60" : "border-line",
+          )}
+        >
+          <p className="text-sm text-muted">Waiting on an answer</p>
+          <p className="font-display text-2xl text-gold-2">{questions}</p>
         </div>
       </section>
       <div className="overflow-x-auto rounded-lg border border-line">
@@ -121,7 +134,13 @@ function PaymentsPage() {
           </thead>
           <tbody>
             {payments.map((p) => (
-              <tr key={p.id} className="border-t border-line align-top">
+              <tr
+                key={p.id}
+                className={cn(
+                  "border-t border-line align-top",
+                  objectionOpen(p) ? "bg-gold/5" : "",
+                )}
+              >
                 <td className="px-4 py-3">{periodLabel(p.period)}</td>
                 <td className="px-4 py-3">{homeLabel(homes, p.homeId)}</td>
                 <td className="px-4 py-3 tabular-nums text-gold-2">
@@ -166,6 +185,18 @@ function PaymentsPage() {
                       ? `In ${formatDate(p.receivedAt)}. ${p.note}`
                       : p.note}
                   </p>
+                  <ObjectionNote objection={p.objection} className="mt-2" />
+                  {objectionOpen(p) ? (
+                    <div className="mt-2">
+                      <AnswerObjection
+                        kind="payment"
+                        amount={p.amount}
+                        onAnswer={(outcome, answer, newAmount) =>
+                          answerPayment(p.id, outcome, answer, newAmount)
+                        }
+                      />
+                    </div>
+                  ) : null}
                   <div className="mt-2 flex flex-wrap gap-2">
                     {p.status !== "received" ? (
                       <button
