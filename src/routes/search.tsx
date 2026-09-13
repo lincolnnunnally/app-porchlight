@@ -4,6 +4,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Field, Input, Select } from "@/components/ui/field";
 import { CITIES } from "@/lib/hunt";
 import { useHuntStore } from "@/lib/hunt-store";
+import { listingFacts } from "@/lib/house-facts";
 import {
   bedsOf,
   homeLabel,
@@ -147,18 +148,28 @@ function SearchPage() {
           </p>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
-            {listings.rentals.map((h) => (
+            {listings.rentals.map((h) => {
+              const listed = listingFacts(h);
+              return (
               <article
                 key={h.id}
                 className="grid gap-2 rounded-xl border border-line bg-panel p-5"
               >
                 <p className="text-xs tracking-wide text-teal uppercase">
-                  {h.status} · {h.intent === "both" ? "rent or sale" : h.intent}
+                  {h.status} · {h.intent === "both" ? "rent or sale" : h.intent}{" "}
+                  · {listed.propertyKind} · {listed.furnished}
                 </p>
                 <h3 className="font-display text-xl">{h.address}</h3>
                 <p className="text-sm text-muted">
                   {h.city} · {h.bedsBaths} · {formatMoney(h.fairRent)} / mo
                 </p>
+                {listed.trashDay || listed.lawnWho ? (
+                  <p className="text-sm text-muted">
+                    {listed.trashDay ? `Trash ${listed.trashDay}` : ""}
+                    {listed.trashDay && listed.lawnWho ? " · " : ""}
+                    {listed.lawnWho ? `Lawn: ${listed.lawnWho}` : ""}
+                  </p>
+                ) : null}
                 <p className="text-sm leading-relaxed text-muted">{h.notes}</p>
                 <Button
                   onClick={() =>
@@ -168,7 +179,8 @@ function SearchPage() {
                   Ask to be told
                 </Button>
               </article>
-            ))}
+              );
+            })}
           </div>
         )}
       </section>

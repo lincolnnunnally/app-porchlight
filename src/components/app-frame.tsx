@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { Lantern } from "./lantern";
 import { useHuntStore } from "@/lib/hunt-store";
 import { useLegalStore } from "@/lib/legal-store";
+import { useRentalStore } from "@/lib/rental-store";
 import { useStewardStore } from "@/lib/steward-store";
 import { cn } from "@/lib/utils";
 
@@ -241,6 +242,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     void useHuntStore.persist.rehydrate();
     void useStewardStore.persist.rehydrate();
     void useLegalStore.persist.rehydrate();
+    void useRentalStore.persist.rehydrate();
   }, []);
 
   const pathname = useRouterState({ select: (s) => s.location.pathname });

@@ -1,3 +1,9 @@
+import {
+  type HouseFactsSpine,
+  emptyHouseFactsSpine,
+  houseFactsText,
+} from "./house-facts";
+
 export type HomeStatus = "occupied" | "vacant" | "turning";
 export type ListingStatus = "available" | "off_market";
 export type HomeIntent = "rent" | "sale" | "both";
@@ -38,7 +44,7 @@ export type RentalHome = {
   ownerId: string;
   listing: ListingStatus;
   intent: HomeIntent;
-};
+} & HouseFactsSpine;
 
 export type Owner = {
   id: string;
@@ -329,6 +335,38 @@ export const RENTAL_SEED = {
       ownerId: "o1",
       listing: "off_market" as ListingStatus,
       intent: "rent" as HomeIntent,
+      facts: {
+        wifiNetwork: "ReedPorch",
+        wifiPassword: "firstave312",
+        trashDay: "Thursday — cans to the curb by 7",
+        lawnWho: "Occupant mows. Owner handles trees and the ditch.",
+        furnished: "unfurnished",
+        utilities:
+          "Occupant: power, water, trash. Owner: taxes and insurance.",
+        renterDuties:
+          "Ordinary quiet use. Tell us when something breaks. Mow.",
+        ownerDuties: "Repairs that protect occupancy, at documented cost.",
+        rentToOwn: "",
+        propertyKind: "residential",
+      },
+      factsVersion: 1,
+      factsUpdatedAt: Date.now() - 1000 * 60 * 60 * 24 * 40,
+      factsHistory: [],
+      factsAcks: [
+        {
+          version: 1,
+          party: "owner",
+          at: Date.now() - 1000 * 60 * 60 * 24 * 40,
+          by: "Porchlight Steward",
+        },
+        {
+          version: 1,
+          party: "renter",
+          at: Date.now() - 1000 * 60 * 60 * 24 * 39,
+          by: "Reed family",
+          leaseId: "l1",
+        },
+      ],
     },
     {
       id: "r2",
@@ -344,6 +382,33 @@ export const RENTAL_SEED = {
       ownerId: "o1",
       listing: "available" as ListingStatus,
       intent: "rent" as HomeIntent,
+      ...emptyHouseFactsSpine(),
+      facts: {
+        ...emptyHouseFactsSpine().facts,
+        trashDay: "Monday — city cans",
+        lawnWho: "Hands will cut once before the walk. Then occupant.",
+        utilities: "Power on. Water honest. Occupant starts the accounts.",
+        propertyKind: "residential",
+        furnished: "unfurnished",
+      },
+      factsVersion: 1,
+      factsUpdatedAt: Date.now() - 1000 * 60 * 60 * 24 * 20,
+      factsHistory: [],
+      factsAcks: [
+        {
+          version: 1,
+          party: "owner",
+          at: Date.now() - 1000 * 60 * 60 * 24 * 20,
+          by: "Porchlight Steward",
+        },
+        {
+          version: 1,
+          party: "renter",
+          at: Date.now() - 1000 * 60 * 60 * 24 * 18,
+          by: "Ortiz household",
+          leaseId: "l-oak-prior",
+        },
+      ],
     },
     {
       id: "r3",
@@ -359,9 +424,24 @@ export const RENTAL_SEED = {
       ownerId: "o1",
       listing: "available" as ListingStatus,
       intent: "both" as HomeIntent,
+      ...emptyHouseFactsSpine(),
     },
   ] satisfies RentalHome[],
   leases: [
+    {
+      id: "l-oak-next",
+      homeId: "r2",
+      household: "Tanya Miles",
+      phone: "912-555-0190",
+      start: "2026-09-15",
+      end: "2027-09-14",
+      monthly: 725,
+      deposit: 725,
+      depositStatus: "none" as DepositStatus,
+      status: "draft" as LeaseStatus,
+      terms:
+        "Fair rent occupancy. Talk first. Attorney still signs. Same house facts version as the last household.",
+    },
     {
       id: "l1",
       homeId: "r1",
@@ -375,6 +455,20 @@ export const RENTAL_SEED = {
       status: "active" as LeaseStatus,
       terms:
         "Month-to-month after the first year. Occupant keeps ordinary quiet use. Repairs at documented cost. No late-fee theater — talk first.",
+    },
+    {
+      id: "l-oak-prior",
+      homeId: "r2",
+      household: "Ortiz household",
+      phone: "912-555-0112",
+      start: "2025-09-01",
+      end: "2026-08-31",
+      monthly: 725,
+      deposit: 725,
+      depositStatus: "returned" as DepositStatus,
+      status: "ended" as LeaseStatus,
+      terms:
+        "Fair rent occupancy. They already acked this facts version and gave the keys back.",
     },
   ] satisfies Lease[],
   payments: [
@@ -523,6 +617,18 @@ export const RENTAL_SEED = {
       notes: "Keys on the nail.",
       items: MOVE_IN_ITEMS,
     },
+    {
+      id: "m-oak-next",
+      homeId: "r2",
+      leaseId: "l-oak-next",
+      kind: "in" as MoveKind,
+      date: "2026-09-15",
+      depositHeld: 725,
+      depositReturned: 0,
+      condition: "Paint still drying. Same house facts as Ortiz left.",
+      notes: "Keys wait until Tanya acks this facts version.",
+      items: MOVE_IN_BLANK.map((i) => ({ ...i })),
+    },
   ] satisfies MoveRecord[],
   owners: [
     {
@@ -643,7 +749,9 @@ Deposit: $${lease.deposit || 0} (${lease.depositStatus})
 
 [ATTORNEY MUST APPROVE TEMPLATE TEXT BEFORE PRODUCTION]
 
-${lease.terms || ""}`;
+${lease.terms || ""}
+
+${home ? houseFactsText(home, `${home.address}, ${home.city}`) : ""}`;
 }
 
 export function receiptText(

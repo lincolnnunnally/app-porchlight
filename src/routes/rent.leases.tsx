@@ -8,6 +8,8 @@ import { CopyNote } from "@/components/copy-note";
 import { Modal } from "@/components/modal";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
+import { HouseFactsSheet } from "@/components/house-facts";
+import { factsReadyForKeys } from "@/lib/house-facts";
 import {
   DEPOSIT_STATUSES,
   LEASE_STATUSES,
@@ -29,8 +31,11 @@ function LeasesPage() {
   const homes = useRentalStore((s) => s.homes);
   const leases = useRentalStore((s) => s.leases);
   const moves = useRentalStore((s) => s.moves);
+  const owners = useRentalStore((s) => s.owners);
   const upsertLease = useRentalStore((s) => s.upsertLease);
+  const ackFacts = useRentalStore((s) => s.ackFacts);
   const startMove = useRentalStore((s) => s.startMove);
+  const startNextOccupancy = useRentalStore((s) => s.startNextOccupancy);
   const toggleMoveItem = useRentalStore((s) => s.toggleMoveItem);
   const patchMove = useRentalStore((s) => s.patchMove);
   const setDepositStatus = useRentalStore((s) => s.setDepositStatus);
@@ -47,7 +52,8 @@ function LeasesPage() {
           <h1 className="font-display text-3xl">Leases</h1>
           <p className="mt-1 max-w-2xl text-muted">
             Simple occupancy for a fair rent. Move-in and move-out live here.
-            An attorney still has to approve anything you sign.
+            An attorney still has to approve anything you sign. House facts stay
+            on the house — a new household acks that version again before keys.
           </p>
         </div>
         <Button onClick={() => setEditing("new")}>Add a lease</Button>
@@ -56,6 +62,12 @@ function LeasesPage() {
         Lease language is a draft. Georgia landlord-tenant rules (Title 44,
         Chapter 7) apply. This app does not file a dispossessory.
       </AttorneyFlag>
+      <p className="rounded-lg border border-gold/40 bg-panel p-4 text-sm text-muted">
+        Turnover on 8 Oak St: Ortiz household already acked house facts version
+        1. Tanya Miles is the next occupancy on that same sheet. Her keys stay
+        gated until she acks. Reed’s Next occupancy button starts the same
+        story on First Ave.
+      </p>
       <div className="grid gap-4">
         {leases.map((l) => {
           const home = homes.find((h) => h.id === l.homeId);
@@ -80,6 +92,33 @@ function LeasesPage() {
                 {l.start} → {l.end} · {l.phone} · deposit {formatMoney(l.deposit)}{" "}
                 ({DEPOSIT_STATUSES.find((d) => d.id === l.depositStatus)?.label})
               </p>
+              {home ? (
+                <HouseFactsSheet
+                  home={home}
+                  leaseId={l.id}
+                  seats={[
+                    {
+                      party: "owner",
+                      name:
+                        owners.find((o) => o.id === home.ownerId)?.name ??
+                        "Owner",
+                      onAck: () =>
+                        ackFacts(
+                          home.id,
+                          "owner",
+                          owners.find((o) => o.id === home.ownerId)?.name ??
+                            "Owner",
+                        ),
+                    },
+                    {
+                      party: "renter",
+                      name: l.household,
+                      onAck: () =>
+                        ackFacts(home.id, "renter", l.household, l.id),
+                    },
+                  ]}
+                />
+              ) : null}
               {home?.status === "occupied" ? null : (
                 <p className="text-sm text-muted">
                   Home is {home?.status ?? "unlisted"}. Occupancy starts when
@@ -115,6 +154,13 @@ function LeasesPage() {
                 >
                   Move-out
                 </button>
+                <button
+                  type="button"
+                  className="min-h-11 rounded-full border border-line px-3 text-sm"
+                  onClick={() => startNextOccupancy(l.id)}
+                >
+                  Next occupancy
+                </button>
               </div>
               {related.map((m) => (
                 <div
@@ -124,19 +170,31 @@ function LeasesPage() {
                   <p className="text-sm font-medium">
                     {m.kind === "in" ? "Move-in" : "Move-out"} · {m.date}
                   </p>
-                  {m.items.map((item) => (
-                    <label
-                      key={item.id}
-                      className="flex min-h-11 items-center gap-2 text-sm"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={item.done}
-                        onChange={() => toggleMoveItem(m.id, item.id)}
-                      />
-                      {item.label}
-                    </label>
-                  ))}
+                  {m.items.map((item) => {
+                    const keysBlocked =
+                      m.kind === "in" &&
+                      item.id === "k" &&
+                      !item.done &&
+                      home &&
+                      !factsReadyForKeys(home, l.id);
+                    return (
+                      <label
+                        key={item.id}
+                        className="flex min-h-11 items-center gap-2 text-sm"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={item.done}
+                          disabled={Boolean(keysBlocked)}
+                          onChange={() => toggleMoveItem(m.id, item.id)}
+                        />
+                        {item.label}
+                        {keysBlocked
+                          ? " — this occupancy must ack this facts version first"
+                          : ""}
+                      </label>
+                    );
+                  })}
                   <Field label="Condition">
                     <Textarea
                       rows={2}

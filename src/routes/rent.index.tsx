@@ -3,6 +3,11 @@ import { useState } from "react";
 import { Modal } from "@/components/modal";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
+import { HouseFactsFields } from "@/components/house-facts";
+import {
+  EMPTY_HOUSE_FACTS,
+  type HouseFacts,
+} from "@/lib/house-facts";
 import {
   HOME_INTENTS,
   HOME_STATUSES,
@@ -95,6 +100,11 @@ function RentHomes() {
               <p className="text-sm leading-relaxed text-muted">{h.notes}</p>
               <p className="text-sm text-muted">{h.payInstructions}</p>
               <p className="text-sm text-muted">
+                Facts v{h.factsVersion} · {h.facts.propertyKind} ·{" "}
+                {h.facts.furnished}
+                {h.facts.trashDay ? ` · trash ${h.facts.trashDay}` : ""}
+              </p>
+              <p className="text-sm text-muted">
                 {open} open work · {waitingHere} neighbors who asked
               </p>
               <div className="mt-auto flex flex-wrap gap-2 pt-2">
@@ -180,6 +190,11 @@ function HomeForm({
     ownerId: home?.ownerId ?? "o1",
     listing: (home?.listing ?? "off_market") as ListingStatus,
     intent: (home?.intent ?? "rent") as HomeIntent,
+    facts: (home?.facts ?? { ...EMPTY_HOUSE_FACTS }) as HouseFacts,
+    factsVersion: home?.factsVersion ?? 1,
+    factsUpdatedAt: home?.factsUpdatedAt ?? null,
+    factsHistory: home?.factsHistory ?? [],
+    factsAcks: home?.factsAcks ?? [],
   });
   return (
     <form
@@ -281,6 +296,16 @@ function HomeForm({
           onChange={(e) => setForm({ ...form, notes: e.target.value })}
         />
       </Field>
+      <HouseFactsFields
+        facts={form.facts}
+        onChange={(facts) => setForm({ ...form, facts })}
+      />
+      {home ? (
+        <p className="text-sm text-muted">
+          Saving a changed sheet makes version {home.factsVersion + 1}. Both
+          sides ack that version before keys.
+        </p>
+      ) : null}
       <div className="flex gap-2">
         <Button type="submit">Save</Button>
         <Button variant="ghost" onClick={onCancel}>

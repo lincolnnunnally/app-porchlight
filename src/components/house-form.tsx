@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
+import { HouseFactsFields } from "./house-facts";
 import { CITIES, STAGES, type House, type HuntStage } from "@/lib/hunt";
+import { EMPTY_HOUSE_FACTS, type HouseFacts } from "@/lib/house-facts";
+import { useRentalStore } from "@/lib/rental-store";
 import { Button } from "./ui/button";
 import { Field, Input, Select, Textarea } from "./ui/field";
 
@@ -25,6 +28,21 @@ export function HouseForm({
   onDelete?: () => void;
 }) {
   const [form, setForm] = useState(blank);
+  const [facts, setFacts] = useState<HouseFacts>({ ...EMPTY_HOUSE_FACTS });
+  const homes = useRentalStore((s) => s.homes);
+  const saveHouseFacts = useRentalStore((s) => s.saveHouseFacts);
+  const rental = homes.find(
+    (h) =>
+      h.address.trim().toLowerCase() === form.address.trim().toLowerCase() &&
+      h.city === form.city,
+  );
+
+  useEffect(() => {
+    const match = useRentalStore
+      .getState()
+      .homes.find((h) => h.id === rental?.id);
+    if (match) setFacts(match.facts);
+  }, [rental?.id, rental?.factsVersion]);
 
   useEffect(() => {
     if (house) {
@@ -51,6 +69,7 @@ export function HouseForm({
           ...form,
           owner: form.owner.trim() || "unknown",
         });
+        if (rental) saveHouseFacts(rental.id, facts);
       }}
     >
       <h2 className="font-display text-2xl">
@@ -103,6 +122,15 @@ export function HouseForm({
           onChange={(e) => setForm({ ...form, notes: e.target.value })}
         />
       </Field>
+      {rental ? (
+        <HouseFactsFields facts={facts} onChange={setFacts} />
+      ) : (
+        <p className="text-sm text-muted">
+          House facts (wifi, trash, lawn, duties) live on the rental house
+          record. Bring the house on Owners or add it under Rent when it is
+          in operation — leases read that same sheet.
+        </p>
+      )}
       <Field label="Hunt stage">
         <Select
           value={form.stage}

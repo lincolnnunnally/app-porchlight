@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { CopyNote } from "@/components/copy-note";
+import { HouseFactsFields } from "@/components/house-facts";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { CITIES } from "@/lib/hunt";
 import { useHuntStore } from "@/lib/hunt-store";
+import { EMPTY_HOUSE_FACTS, type HouseFacts } from "@/lib/house-facts";
 import {
   HOME_INTENTS,
   ownerInviteNote,
@@ -27,6 +29,7 @@ function OwnersPage() {
   const [intent, setIntent] = useState<HomeIntent>("rent");
   const [fairRent, setFairRent] = useState(650);
   const [notes, setNotes] = useState("");
+  const [facts, setFacts] = useState<HouseFacts>({ ...EMPTY_HOUSE_FACTS });
   const [saved, setSaved] = useState<string | null>(null);
   const [inviteFor, setInviteFor] = useState("neighbor");
 
@@ -76,6 +79,11 @@ function OwnersPage() {
             ownerId,
             listing: "off_market",
             intent,
+            facts,
+            factsVersion: 1,
+            factsUpdatedAt: Date.now(),
+            factsHistory: [],
+            factsAcks: [],
           });
           if (intent === "sale" || intent === "both") {
             addHouse({
@@ -95,6 +103,7 @@ function OwnersPage() {
           setPhone("");
           setAddress("");
           setNotes("");
+          setFacts({ ...EMPTY_HOUSE_FACTS });
         }}
       >
         <h2 className="font-display text-2xl">Bring a house</h2>
@@ -163,6 +172,7 @@ function OwnersPage() {
             onChange={(e) => setNotes(e.target.value)}
           />
         </Field>
+        <HouseFactsFields facts={facts} onChange={setFacts} />
         <Button type="submit">Add this house</Button>
         {saved ? <p className="text-sm text-teal">{saved}</p> : null}
       </form>
