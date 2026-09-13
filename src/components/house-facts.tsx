@@ -5,6 +5,7 @@ import {
   PROPERTY_KINDS,
   factsAckFor,
   factsReadyForKeys,
+  priorRenterAckOnVersion,
   type FactsParty,
   type HouseFacts,
   type HouseFactsSpine,
@@ -143,18 +144,21 @@ export function HouseFactsSheet({
   onAck,
   ackName,
   leaseId,
+  seats,
 }: {
   home: HouseFactsSpine;
   party?: FactsParty;
   onAck?: () => void;
   ackName?: string;
   leaseId?: string;
+  seats?: { party: FactsParty; name: string; onAck: () => void }[];
 }) {
   const ownerAck = factsAckFor(home, "owner");
   const renterAck = factsAckFor(home, "renter", leaseId);
-  const mine = party
-    ? factsAckFor(home, party, party === "renter" ? leaseId : undefined)
-    : undefined;
+  const priorRenter = priorRenterAckOnVersion(home, leaseId);
+  const actions =
+    seats ??
+    (party && onAck ? [{ party, name: ackName ?? "", onAck }] : []);
   const ready = factsReadyForKeys(home, leaseId);
   const facts = home.facts;
 
@@ -168,13 +172,20 @@ export function HouseFactsSheet({
           <h3 className="font-display text-xl">Version {home.factsVersion}</h3>
         </div>
         <span className="rounded-full border border-line px-2 py-0.5 text-xs tracking-wide uppercase text-gold-2">
-          {ready ? "Both acked · keys ok" : "Ack before keys"}
+          {ready ? "This occupancy acked · keys ok" : "This occupancy · ack before keys"}
         </span>
       </div>
       <p className="text-sm text-muted">
         Same sheet on the house. Owner and renter read these words. Amendments
-        make a new version — not a hallway conversation.
+        make a new version — not a hallway conversation. A new lease does not
+        inherit the last household’s ack.
       </p>
+      {priorRenter && !renterAck ? (
+        <p className="text-sm text-gold-2">
+          Prior household ({priorRenter.by}) already acked version{" "}
+          {home.factsVersion}. This occupancy still has to ack before keys.
+        </p>
+      ) : null}
       <FactLine
         label="Type"
         value={
@@ -203,24 +214,33 @@ export function HouseFactsSheet({
           ? `acked ${formatDate(ownerAck.at)} · ${ownerAck.by}`
           : "waiting"}
         {" · "}
-        Renter:{" "}
+        This occupancy:{" "}
         {renterAck
           ? `acked ${formatDate(renterAck.at)} · ${renterAck.by}`
           : "waiting"}
       </p>
-      {party && onAck ? (
-        mine ? (
-          <p className="text-sm text-teal">
-            You acked version {home.factsVersion}
-            {ackName ? ` as ${ackName}` : ""}.
+      {actions.map((seat) => {
+        const done = factsAckFor(
+          home,
+          seat.party,
+          seat.party === "renter" ? leaseId : undefined,
+        );
+        return done ? (
+          <p key={seat.party} className="text-sm text-teal">
+            {seat.name || seat.party} acked version {home.factsVersion}.
           </p>
         ) : (
-          <Button type="button" variant="teal" onClick={onAck}>
+          <Button
+            key={seat.party}
+            type="button"
+            variant="teal"
+            onClick={seat.onAck}
+          >
             Ack this version
-            {ackName ? ` · ${ackName}` : ""}
+            {seat.name ? ` · ${seat.name}` : ""}
           </Button>
-        )
-      ) : null}
+        );
+      })}
     </section>
   );
 }

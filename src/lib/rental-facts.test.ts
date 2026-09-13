@@ -6,6 +6,7 @@ import {
   applyFactsAmendment,
   factsReadyForKeys,
   listingFacts,
+  priorRenterAckOnVersion,
   withHouseFactsSpine,
 } from "./house-facts.ts";
 
@@ -78,6 +79,9 @@ describe("house facts spine", () => {
         (ack) => ack.party === "renter" && ack.leaseId === "l1",
       ),
     );
+    assert.equal(priorRenterAckOnVersion(prior, "l2")?.by, "Reed family");
+    const orphan = ackHouseFacts(owner, "renter", "No lease");
+    assert.equal(orphan.factsAcks.length, owner.factsAcks.length);
   });
 
   it("lets a later listing read the same fields without the wifi password", () => {

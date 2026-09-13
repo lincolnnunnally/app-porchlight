@@ -391,6 +391,24 @@ export const RENTAL_SEED = {
         propertyKind: "residential",
         furnished: "unfurnished",
       },
+      factsVersion: 1,
+      factsUpdatedAt: Date.now() - 1000 * 60 * 60 * 24 * 20,
+      factsHistory: [],
+      factsAcks: [
+        {
+          version: 1,
+          party: "owner",
+          at: Date.now() - 1000 * 60 * 60 * 24 * 20,
+          by: "Porchlight Steward",
+        },
+        {
+          version: 1,
+          party: "renter",
+          at: Date.now() - 1000 * 60 * 60 * 24 * 18,
+          by: "Ortiz household",
+          leaseId: "l-oak-prior",
+        },
+      ],
     },
     {
       id: "r3",
@@ -411,6 +429,20 @@ export const RENTAL_SEED = {
   ] satisfies RentalHome[],
   leases: [
     {
+      id: "l-oak-next",
+      homeId: "r2",
+      household: "Tanya Miles",
+      phone: "912-555-0190",
+      start: "2026-09-15",
+      end: "2027-09-14",
+      monthly: 725,
+      deposit: 725,
+      depositStatus: "none" as DepositStatus,
+      status: "draft" as LeaseStatus,
+      terms:
+        "Fair rent occupancy. Talk first. Attorney still signs. Same house facts version as the last household.",
+    },
+    {
       id: "l1",
       homeId: "r1",
       household: "Reed family",
@@ -423,6 +455,20 @@ export const RENTAL_SEED = {
       status: "active" as LeaseStatus,
       terms:
         "Month-to-month after the first year. Occupant keeps ordinary quiet use. Repairs at documented cost. No late-fee theater — talk first.",
+    },
+    {
+      id: "l-oak-prior",
+      homeId: "r2",
+      household: "Ortiz household",
+      phone: "912-555-0112",
+      start: "2025-09-01",
+      end: "2026-08-31",
+      monthly: 725,
+      deposit: 725,
+      depositStatus: "returned" as DepositStatus,
+      status: "ended" as LeaseStatus,
+      terms:
+        "Fair rent occupancy. They already acked this facts version and gave the keys back.",
     },
   ] satisfies Lease[],
   payments: [
@@ -570,6 +616,18 @@ export const RENTAL_SEED = {
       condition: "Honest 2/1. New smoke alarm. Porch needs a later rail screw.",
       notes: "Keys on the nail.",
       items: MOVE_IN_ITEMS,
+    },
+    {
+      id: "m-oak-next",
+      homeId: "r2",
+      leaseId: "l-oak-next",
+      kind: "in" as MoveKind,
+      date: "2026-09-15",
+      depositHeld: 725,
+      depositReturned: 0,
+      condition: "Paint still drying. Same house facts as Ortiz left.",
+      notes: "Keys wait until Tanya acks this facts version.",
+      items: MOVE_IN_BLANK.map((i) => ({ ...i })),
     },
   ] satisfies MoveRecord[],
   owners: [

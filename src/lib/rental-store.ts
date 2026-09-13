@@ -97,6 +97,7 @@ type RentalActions = {
   upsertVendor: (row: Omit<Vendor, "id"> & { id?: string }) => string;
   addNotice: (row: Omit<Notice, "id" | "at"> & { at?: number }) => string;
   startMove: (leaseId: string, kind: MoveKind) => string | null;
+  startNextOccupancy: (fromLeaseId: string) => string | null;
   toggleMoveItem: (moveId: string, itemId: string) => void;
   patchMove: (id: string, patch: Partial<MoveRecord>) => void;
   setDeskLease: (id: string) => void;
@@ -110,6 +111,29 @@ function patchList<T extends { id: string }>(
 ): T[] {
   const i = list.findIndex((h) => h.id === next.id);
   return i >= 0 ? list.map((h) => (h.id === next.id ? next : h)) : [next, ...list];
+}
+
+function ensureById<T extends { id: string }>(list: T[], extras: T[]) {
+  const ids = new Set(list.map((row) => row.id));
+  return extras.filter((row) => !ids.has(row.id)).length
+    ? [...list, ...extras.filter((row) => !ids.has(row.id))]
+    : list;
+}
+
+function mergeFactsAcks(
+  existing: RentalHome["factsAcks"],
+  seeded: RentalHome["factsAcks"],
+) {
+  const out = [...existing];
+  for (const ack of seeded) {
+    const has = out.some((row) =>
+      row.version === ack.version &&
+      row.party === ack.party &&
+      (ack.party === "owner" || row.leaseId === ack.leaseId),
+    );
+    if (!has) out.push(ack);
+  }
+  return out;
 }
 
 const seededNotices: Notice[] = RENTAL_SEED.notices.map((n) => {
@@ -483,6 +507,37 @@ export const useRentalStore = create<RentalData & RentalActions>()(
         }));
         return id;
       },
+      startNextOccupancy: (fromLeaseId) => {
+        const prior = get().leases.find((l) => l.id === fromLeaseId);
+        if (!prior) return null;
+        const start = new Date();
+        const end = new Date();
+        end.setFullYear(end.getFullYear() + 1);
+        const pad = (n: number) => String(n).padStart(2, "0");
+        const iso = (d: Date) =>
+          `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+        const id = uid("l");
+        set((s) => ({
+          leases: [
+            {
+              id,
+              homeId: prior.homeId,
+              household: "Next household",
+              phone: "",
+              start: iso(start),
+              end: iso(end),
+              monthly: prior.monthly,
+              deposit: prior.deposit,
+              depositStatus: "none",
+              status: "draft",
+              terms: prior.terms,
+            },
+            ...s.leases,
+          ],
+        }));
+        get().startMove(id, "in");
+        return id;
+      },
       startMove: (leaseId, kind) => {
         const lease = get().leases.find((l) => l.id === leaseId);
         if (!lease) return null;
@@ -551,20 +606,28 @@ export const useRentalStore = create<RentalData & RentalActions>()(
       skipHydration: true,
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<RentalData>;
-        const homes = (p.homes ?? current.homes).map((h) =>
-          withHouseFactsSpine({
+        const homes = (p.homes ?? current.homes).map((h) => {
+          const seeded = current.homes.find((row) => row.id === h.id);
+          return withHouseFactsSpine({
             ...h,
             payInstructions: h.payInstructions ?? "",
             ownerId: h.ownerId ?? "o1",
             listing:
               h.listing ?? (h.status === "occupied" ? "off_market" : "available"),
             intent: h.intent ?? "rent",
-          }),
+            factsAcks: mergeFactsAcks(
+              h.factsAcks ?? [],
+              seeded?.factsAcks ?? [],
+            ),
+          });
+        });
+        const leases = ensureById(
+          (p.leases ?? current.leases).map((l) => ({
+            ...l,
+            depositStatus: l.depositStatus ?? ("held" as DepositStatus),
+          })),
+          current.leases,
         );
-        const leases = (p.leases ?? current.leases).map((l) => ({
-          ...l,
-          depositStatus: l.depositStatus ?? ("held" as DepositStatus),
-        }));
         const payments = (p.payments ?? current.payments).map((x) => ({
           ...x,
           method: x.method ?? ("cash" as PayMethod),
@@ -593,7 +656,7 @@ export const useRentalStore = create<RentalData & RentalActions>()(
           })),
           vendors: p.vendors ?? current.vendors,
           notices: p.notices ?? current.notices,
-          moves: p.moves ?? current.moves,
+          moves: ensureById(p.moves ?? current.moves, current.moves),
           owners: p.owners ?? current.owners,
           messages: p.messages ?? current.messages,
           cashouts: p.cashouts ?? current.cashouts,

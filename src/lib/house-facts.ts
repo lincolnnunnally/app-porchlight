@@ -137,6 +137,7 @@ export function ackHouseFacts<T extends HouseFactsSpine>(
   at = Date.now(),
   leaseId?: string,
 ): T {
+  if (party === "renter" && !leaseId) return home;
   const rest = home.factsAcks.filter((ack) => {
     if (ack.version !== home.factsVersion || ack.party !== party) return true;
     if (party === "renter") return ack.leaseId !== leaseId;
@@ -172,6 +173,21 @@ export function factsAckFor(
 export function factsReadyForKeys(home: HouseFactsSpine, leaseId?: string) {
   return Boolean(
     factsAckFor(home, "owner") && factsAckFor(home, "renter", leaseId),
+  );
+}
+
+/** Another occupancy already acked this house version — not this lease. */
+export function priorRenterAckOnVersion(
+  home: HouseFactsSpine,
+  leaseId?: string,
+) {
+  if (!leaseId) return undefined;
+  return home.factsAcks.find(
+    (ack) =>
+      ack.version === home.factsVersion &&
+      ack.party === "renter" &&
+      Boolean(ack.leaseId) &&
+      ack.leaseId !== leaseId,
   );
 }
 
