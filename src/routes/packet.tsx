@@ -10,15 +10,16 @@ function PacketDoc() {
     <article className="mx-auto grid max-w-3xl gap-6">
       <header className="grid gap-2">
         <p className="text-sm tracking-wide text-gold-2 uppercase">
-          AppEngine vNext packet · do not deploy
+          AppEngine vNext packet ·{" "}
+          {p.doNotDeploy ? "do not deploy" : "merged to live"}
         </p>
         <h1 className="font-display text-3xl">
           {p.app}: {p.currentVersion} → {p.targetVersion}
         </h1>
         <p className="text-muted">
-          Live hunt remains at {p.productionUrl}. This packet adds Home
-          Stewardship and fair-rent operations. It does not replace Hunt /
-          Houses / Letters.
+          Live at {p.productionUrl}. This packet added Home Stewardship and
+          fair-rent operations beside the hunt. It did not replace Hunt /
+          Houses / Letters. Kept here as the build record.
         </p>
       </header>
       <AttorneyFlag>

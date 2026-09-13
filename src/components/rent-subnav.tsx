@@ -28,7 +28,7 @@ export function RentSubnav() {
   return (
     <div className="grid gap-4">
       <div>
-        <p className="text-sm tracking-wide text-gold-2 uppercase">Rentals</p>
+        <p className="text-sm tracking-wide text-gold-2 uppercase">Rent</p>
         <p className="text-sm text-muted">
           Fair rent, not market max. {vacant} home{vacant === 1 ? "" : "s"}{" "}
           turning or vacant. {waiting} neighbor{waiting === 1 ? "" : "s"} waiting
@@ -36,7 +36,7 @@ export function RentSubnav() {
         </p>
       </div>
       <nav
-        aria-label="Rentals"
+        aria-label="Rent"
         className="-mx-1 flex gap-2 overflow-x-auto pb-1"
       >
         {ITEMS.map((item) => {

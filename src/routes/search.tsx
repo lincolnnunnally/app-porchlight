@@ -19,7 +19,6 @@ function SearchPage() {
   const homes = useRentalStore((s) => s.homes);
   const hunt = useHuntStore((s) => s.houses);
   const upsertWait = useRentalStore((s) => s.upsertWait);
-  const offerFromWait = useRentalStore((s) => s.offerFromWait);
   const [q, setQ] = useState("");
   const [city, setCity] = useState("");
   const [max, setMax] = useState("");
@@ -250,7 +249,7 @@ function SearchPage() {
           onSubmit={(e) => {
             e.preventDefault();
             if (!ask.name.trim()) return;
-            const id = upsertWait({
+            upsertWait({
               name: ask.name,
               phone: ask.phone,
               household: "",
@@ -260,7 +259,6 @@ function SearchPage() {
               homeId: ask.homeId,
               referredBy: "Search",
             });
-            offerFromWait(id);
             setSaved("You’re on the list. We call when the light is on.");
             setAsk(null);
           }}

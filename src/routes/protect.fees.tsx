@@ -34,6 +34,35 @@ function FeesPage() {
     );
   }
 
+  if (season === "connector") {
+    return (
+      <div className="grid max-w-xl gap-4">
+        <h1 className="font-display text-3xl">
+          Connectors refer. The family runs its own packet.
+        </h1>
+        <p className="text-muted">
+          This device is set up as a connector. A homeowner or adult child
+          takes the season quiz on their own device, sees these fees, and
+          generates the draft themselves.
+        </p>
+        <div className="flex flex-wrap gap-3">
+          <Link
+            to="/protect/quiz"
+            className={cn(buttonVariants(), "no-underline")}
+          >
+            Take the season quiz as the family
+          </Link>
+          <Link
+            to="/connect"
+            className={cn(buttonVariants({ variant: "ghost" }), "no-underline")}
+          >
+            Back to Connectors
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="grid gap-6">
       <div className="max-w-2xl">
