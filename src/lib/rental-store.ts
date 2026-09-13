@@ -43,6 +43,7 @@ import {
   withHouseFactsSpine,
   type FactsParty,
   type HouseFacts,
+  type HouseFactsSpine,
 } from "./house-facts";
 import { uid } from "./utils";
 
@@ -64,8 +65,12 @@ type RentalData = {
   deskOwnerId: string;
 };
 
+type HomeInput = Omit<RentalHome, "id" | keyof HouseFactsSpine> & {
+  id?: string;
+} & Partial<HouseFactsSpine>;
+
 type RentalActions = {
-  upsertHome: (row: Omit<RentalHome, "id"> & { id?: string }) => string;
+  upsertHome: (row: HomeInput) => string;
   saveHouseFacts: (id: string, facts: HouseFacts) => void;
   ackFacts: (id: string, party: FactsParty, by: string, leaseId?: string) => void;
   setHomeStatus: (id: string, status: HomeStatus) => void;

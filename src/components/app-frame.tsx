@@ -240,6 +240,7 @@ function PrimaryPills({
 export function AppFrame({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     void useHuntStore.persist.rehydrate();
+    void useRentalStore.persist.rehydrate();
     void useStewardStore.persist.rehydrate();
     void useLegalStore.persist.rehydrate();
     void useRentalStore.persist.rehydrate();

@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Modal } from "@/components/modal";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -30,6 +30,7 @@ function RentHomes() {
   const work = useRentalStore((s) => s.work);
   const applications = useRentalStore((s) => s.applications);
   const upsertHome = useRentalStore((s) => s.upsertHome);
+  const navigate = useNavigate();
   const [editing, setEditing] = useState<RentalHome | null | "new">(null);
 
   const due = payments.filter((p) => p.status === "due" || p.status === "late");
@@ -111,9 +112,14 @@ function RentHomes() {
                 <button
                   type="button"
                   className="min-h-11 rounded-full border border-line px-3 text-sm"
-                  onClick={() => setEditing(h)}
+                  onClick={() =>
+                    void navigate({
+                      to: "/place/$placeId",
+                      params: { placeId: h.id },
+                    })
+                  }
                 >
-                  Open
+                  Open the house
                 </button>
                 {h.status !== "occupied" ? (
                   <Link
@@ -145,10 +151,14 @@ function RentHomes() {
         <HomeForm
           home={editing && editing !== "new" ? editing : null}
           onSave={(row) => {
-            upsertHome(
+            const id = upsertHome(
               editing && editing !== "new" ? { ...row, id: editing.id } : row,
             );
             setEditing(null);
+            void navigate({
+              to: "/place/$placeId",
+              params: { placeId: id },
+            });
           }}
           onCancel={() => setEditing(null)}
         />
@@ -174,7 +184,17 @@ function HomeForm({
   onCancel,
 }: {
   home: RentalHome | null;
-  onSave: (row: Omit<RentalHome, "id">) => void;
+  onSave: (
+    row: Omit<
+      RentalHome,
+      | "id"
+      | "facts"
+      | "factsVersion"
+      | "factsUpdatedAt"
+      | "factsHistory"
+      | "factsAcks"
+    >,
+  ) => void;
   onCancel: () => void;
 }) {
   const [form, setForm] = useState({

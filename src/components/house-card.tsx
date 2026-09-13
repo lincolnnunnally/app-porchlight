@@ -53,7 +53,7 @@ export function HouseCard({
           onClick={onOpen}
           className="min-h-10 rounded-full border border-line px-3 text-sm text-ink"
         >
-          Open
+          Open the house
         </button>
         <button
           type="button"
