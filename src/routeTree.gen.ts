@@ -18,9 +18,11 @@ import { Route as HuntRouteImport } from './routes/hunt'
 import { Route as LettersRouteImport } from './routes/letters'
 import { Route as OwnersRouteImport } from './routes/owners'
 import { Route as PacketRouteImport } from './routes/packet'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ProtectRouteImport } from './routes/protect'
 import { Route as RentRouteImport } from './routes/rent'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ListingHomeIdRouteImport } from './routes/listing.$homeId'
 import { Route as PlacePlaceIdRouteImport } from './routes/place.$placeId'
 import { Route as ProtectIndexRouteImport } from './routes/protect.index'
@@ -84,6 +86,11 @@ const PacketRoute = PacketRouteImport.update({
   path: '/packet',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProtectRoute = ProtectRouteImport.update({
   id: '/protect',
   path: '/protect',
@@ -97,6 +104,11 @@ const RentRoute = RentRouteImport.update({
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ListingHomeIdRoute = ListingHomeIdRouteImport.update({
@@ -195,9 +207,11 @@ export interface FileRoutesByFullPath {
   '/letters': typeof LettersRoute
   '/owners': typeof OwnersRoute
   '/packet': typeof PacketRoute
+  '/privacy': typeof PrivacyRoute
   '/protect': typeof ProtectRouteWithChildren
   '/rent': typeof RentRouteWithChildren
   '/search': typeof SearchRoute
+  '/terms': typeof TermsRoute
   '/listing/$homeId': typeof ListingHomeIdRoute
   '/place/$placeId': typeof PlacePlaceIdRoute
   '/protect/crisis': typeof ProtectCrisisRoute
@@ -226,7 +240,9 @@ export interface FileRoutesByTo {
   '/letters': typeof LettersRoute
   '/owners': typeof OwnersRoute
   '/packet': typeof PacketRoute
+  '/privacy': typeof PrivacyRoute
   '/search': typeof SearchRoute
+  '/terms': typeof TermsRoute
   '/listing/$homeId': typeof ListingHomeIdRoute
   '/place/$placeId': typeof PlacePlaceIdRoute
   '/protect/crisis': typeof ProtectCrisisRoute
@@ -256,9 +272,11 @@ export interface FileRoutesById {
   '/letters': typeof LettersRoute
   '/owners': typeof OwnersRoute
   '/packet': typeof PacketRoute
+  '/privacy': typeof PrivacyRoute
   '/protect': typeof ProtectRouteWithChildren
   '/rent': typeof RentRouteWithChildren
   '/search': typeof SearchRoute
+  '/terms': typeof TermsRoute
   '/listing/$homeId': typeof ListingHomeIdRoute
   '/place/$placeId': typeof PlacePlaceIdRoute
   '/protect/crisis': typeof ProtectCrisisRoute
@@ -289,9 +307,11 @@ export interface FileRouteTypes {
     | '/letters'
     | '/owners'
     | '/packet'
+    | '/privacy'
     | '/protect'
     | '/rent'
     | '/search'
+    | '/terms'
     | '/listing/$homeId'
     | '/place/$placeId'
     | '/protect/crisis'
@@ -320,7 +340,9 @@ export interface FileRouteTypes {
     | '/letters'
     | '/owners'
     | '/packet'
+    | '/privacy'
     | '/search'
+    | '/terms'
     | '/listing/$homeId'
     | '/place/$placeId'
     | '/protect/crisis'
@@ -349,9 +371,11 @@ export interface FileRouteTypes {
     | '/letters'
     | '/owners'
     | '/packet'
+    | '/privacy'
     | '/protect'
     | '/rent'
     | '/search'
+    | '/terms'
     | '/listing/$homeId'
     | '/place/$placeId'
     | '/protect/crisis'
@@ -381,9 +405,11 @@ export interface RootRouteChildren {
   LettersRoute: typeof LettersRoute
   OwnersRoute: typeof OwnersRoute
   PacketRoute: typeof PacketRoute
+  PrivacyRoute: typeof PrivacyRoute
   ProtectRoute: typeof ProtectRouteWithChildren
   RentRoute: typeof RentRouteWithChildren
   SearchRoute: typeof SearchRoute
+  TermsRoute: typeof TermsRoute
   ListingHomeIdRoute: typeof ListingHomeIdRoute
   PlacePlaceIdRoute: typeof PlacePlaceIdRoute
 }
@@ -453,6 +479,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PacketRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/protect': {
       id: '/protect'
       path: '/protect'
@@ -472,6 +505,13 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/listing/$homeId': {
@@ -653,9 +693,11 @@ const rootRouteChildren: RootRouteChildren = {
   LettersRoute: LettersRoute,
   OwnersRoute: OwnersRoute,
   PacketRoute: PacketRoute,
+  PrivacyRoute: PrivacyRoute,
   ProtectRoute: ProtectRouteWithChildren,
   RentRoute: RentRouteWithChildren,
   SearchRoute: SearchRoute,
+  TermsRoute: TermsRoute,
   ListingHomeIdRoute: ListingHomeIdRoute,
   PlacePlaceIdRoute: PlacePlaceIdRoute,
 }

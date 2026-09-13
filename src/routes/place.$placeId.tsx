@@ -2,8 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { HouseFactsFields, HouseFactsSheet } from "@/components/house-facts";
 import { HouseForm } from "@/components/house-form";
-import { ListingShare } from "@/components/listing-share";
-import { MessageThread } from "@/components/message-thread";
+import { HouseOperate } from "@/components/house-operate";
 import { Modal } from "@/components/modal";
 import { PropertyLookups } from "@/components/property-lookups";
 import { StreetView } from "@/components/street-view";
@@ -17,11 +16,7 @@ import {
   type PlacePurpose,
 } from "@/lib/lookups";
 import { findPlace } from "@/lib/place";
-import {
-  HOME_STATUSES,
-  homeLabel,
-  type HomeStatus,
-} from "@/lib/rental";
+import { HOME_STATUSES, type HomeStatus } from "@/lib/rental";
 import { useRentalStore } from "@/lib/rental-store";
 import { cn, formatMoney } from "@/lib/utils";
 
@@ -63,6 +58,7 @@ function PlacePage() {
   const [editing, setEditing] = useState(false);
   const [factsDraft, setFactsDraft] = useState<HouseFacts | null>(null);
   const [factsSaved, setFactsSaved] = useState(false);
+  const [seat, setSeat] = useState<"look" | "owner" | "occupant">("look");
 
   useEffect(() => {
     let alive = true;
@@ -169,6 +165,12 @@ function PlacePage() {
               ? ` · ${HOME_STATUSES.find((s) => s.id === rent.status)?.label}`
               : ""}
           </p>
+          {rent?.sample ? (
+            <p className="mt-2 text-sm text-gold-2">
+              Sample on this device — not a real occupancy. Your own addresses
+              are yours.
+            </p>
+          ) : null}
         </div>
         <Button variant="ghost" onClick={() => setEditing(true)}>
           Edit address
@@ -176,6 +178,32 @@ function PlacePage() {
       </div>
 
       <StreetView address={address} city={city} />
+
+      {rent ? (
+        <nav aria-label="Who is looking" className="flex flex-wrap gap-2">
+          {(
+            [
+              ["look", "Looking it up"],
+              ["owner", "Owner / manager"],
+              ["occupant", "Occupant"],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setSeat(id)}
+              className={cn(
+                "min-h-11 rounded-full border px-4 text-sm",
+                seat === id
+                  ? "border-gold bg-gold font-semibold text-night"
+                  : "border-line text-muted",
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
+      ) : null}
 
       {want === "donate" ? <DonateNote /> : null}
       {want === "protect" ? (
@@ -314,72 +342,61 @@ function PlacePage() {
               ))}
             </Select>
           </Field>
-          <p className="text-sm text-muted">{rent.payInstructions}</p>
-          <div className="flex flex-wrap gap-2">
-            <Link
-              to="/rent/leases"
-              className={cn(buttonVariants({ variant: "ghost" }), "no-underline")}
-            >
-              Lease
-            </Link>
-            <Link
-              to="/rent/payments"
-              className={cn(buttonVariants({ variant: "ghost" }), "no-underline")}
-            >
-              Payments
-            </Link>
-            <Link
-              to="/rent/work"
-              className={cn(buttonVariants({ variant: "ghost" }), "no-underline")}
-            >
-              Work
-            </Link>
-            <Link
-              to="/dash"
-              className={cn(buttonVariants({ variant: "ghost" }), "no-underline")}
-            >
-              Household desk
-            </Link>
-          </div>
-          {lease ? (
+          {seat === "look" ? (
             <p className="text-sm text-muted">
-              {lease.household}
-              {lease.phone ? ` · ${lease.phone}` : ""} · lease for{" "}
-              {homeLabel(homes, lease.homeId)} · {formatMoney(lease.monthly)} / mo
-              · {lease.status}
+              Lookups and next steps are above. Switch to Owner / manager to
+              write a lease, confirm rent, or share a listing. Occupant sees
+              wifi, trash, and what is due.
             </p>
+          ) : seat === "occupant" ? (
+            <>
+              <HouseFactsSheet
+                home={rent}
+                party="renter"
+                leaseId={lease?.id}
+                ackName={lease?.household ?? "Occupant"}
+                onAck={() =>
+                  ackFacts(
+                    rent.id,
+                    "renter",
+                    lease?.household ?? "Occupant",
+                    lease?.id,
+                  )
+                }
+              />
+              <HouseOperate home={rent} lease={lease} seat="occupant" />
+            </>
           ) : (
-            <p className="text-sm text-muted">
-              No lease yet. Call the waitlist, or write one from Leases.
-            </p>
-          )}
-          <ListingShare home={rent} />
-          <HouseFactsSheet
-            home={rent}
-            party="owner"
-            ackName="Owner"
-            onAck={() => ackFacts(rent.id, "owner", "Owner")}
-          />
-          {factsDraft ? (
-            <form
-              className="grid gap-3"
-              onSubmit={(e) => {
-                e.preventDefault();
-                saveHouseFacts(rent.id, factsDraft);
-                setFactsSaved(true);
-              }}
-            >
-              <HouseFactsFields facts={factsDraft} onChange={setFactsDraft} />
-              <Button type="submit">Save house facts</Button>
-              {factsSaved ? (
-                <p className="text-sm text-teal">
-                  Saved on this house. Occupant still needs to ack the version
-                  before keys.
-                </p>
+            <>
+              <p className="text-sm text-muted">{rent.payInstructions}</p>
+              <HouseOperate home={rent} lease={lease} seat="owner" />
+              <HouseFactsSheet
+                home={rent}
+                party="owner"
+                ackName="Owner"
+                onAck={() => ackFacts(rent.id, "owner", "Owner")}
+              />
+              {factsDraft ? (
+                <form
+                  className="grid gap-3"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    saveHouseFacts(rent.id, factsDraft);
+                    setFactsSaved(true);
+                  }}
+                >
+                  <HouseFactsFields facts={factsDraft} onChange={setFactsDraft} />
+                  <Button type="submit">Save house facts</Button>
+                  {factsSaved ? (
+                    <p className="text-sm text-teal">
+                      Saved on this house. Occupant still needs to ack the
+                      version before keys.
+                    </p>
+                  ) : null}
+                </form>
               ) : null}
-            </form>
-          ) : null}
-          <MessageThread homeId={rent.id} from="owner" />
+            </>
+          )}
         </section>
       ) : (
         <Button onClick={operateAsRental}>Keep a rental record here</Button>

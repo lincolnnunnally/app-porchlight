@@ -82,6 +82,8 @@ export type RentalHome = {
   intent: HomeIntent;
   /** When status last changed. Vacancy nudges count days from here. */
   statusChangedAt?: number | null;
+  /** Curated sample on this device — not a real occupancy. */
+  sample?: boolean;
 } & HouseFactsSpine;
 
 export type Owner = {
@@ -375,6 +377,7 @@ export const RENTAL_SEED = {
       ownerId: "o1",
       listing: "off_market" as ListingStatus,
       intent: "rent" as HomeIntent,
+      sample: true,
       statusChangedAt: Date.now() - 1000 * 60 * 60 * 24 * 165,
       facts: {
         wifiNetwork: "ReedPorch",
@@ -423,6 +426,7 @@ export const RENTAL_SEED = {
       ownerId: "o1",
       listing: "available" as ListingStatus,
       intent: "rent" as HomeIntent,
+      sample: true,
       statusChangedAt: Date.now() - 1000 * 60 * 60 * 24 * 9,
       ...emptyHouseFactsSpine(),
       facts: {
@@ -466,6 +470,7 @@ export const RENTAL_SEED = {
       ownerId: "o1",
       listing: "available" as ListingStatus,
       intent: "both" as HomeIntent,
+      sample: true,
       statusChangedAt: Date.now() - 1000 * 60 * 60 * 24 * 16,
       ...emptyHouseFactsSpine(),
     },

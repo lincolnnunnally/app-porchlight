@@ -94,6 +94,11 @@ function RentHomes() {
               >
                 {HOME_STATUSES.find((s) => s.id === h.status)?.label}
               </span>
+              {h.sample ? (
+                <span className="inline-flex w-fit rounded-full border border-gold/40 px-2 py-0.5 text-xs tracking-wide uppercase text-gold-2">
+                  Sample
+                </span>
+              ) : null}
               <h2 className="font-display text-xl">{h.address}</h2>
               <p className="text-sm text-muted">
                 {h.city} · {h.bedsBaths} · {formatMoney(h.fairRent)} / mo

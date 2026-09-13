@@ -104,7 +104,7 @@ describe("vacancyNudges", () => {
     const nudges = vacancyNudges({
       now,
       homes: [
-        home({ id: "r3" }),
+        home({ id: "r3", statusChangedAt: now - 20 * DAY }),
         home({ id: "r1", address: "312 First Ave", status: "occupied", listing: "off_market" }),
       ],
       leases: [
