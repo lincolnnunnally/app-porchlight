@@ -49,7 +49,12 @@ function HousesPage() {
             <HouseCard
               key={h.id}
               house={h}
-              onOpen={() => setEditing(h)}
+              onOpen={() =>
+                navigate({
+                  to: "/place/$placeId",
+                  params: { placeId: h.id },
+                })
+              }
               onLetter={() =>
                 navigate({ to: "/letters", search: { house: h.id } })
               }
@@ -61,9 +66,14 @@ function HousesPage() {
         <HouseForm
           house={editing && editing !== "new" ? editing : null}
           onSave={(row) => {
+            const id =
+              editing && editing !== "new" ? editing.id : addHouse(row);
             if (editing && editing !== "new") updateHouse(editing.id, row);
-            else addHouse(row);
             setEditing(null);
+            void navigate({
+              to: "/place/$placeId",
+              params: { placeId: id },
+            });
           }}
           onCancel={() => setEditing(null)}
           onDelete={

@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { CopyNote } from "@/components/copy-note";
 import { HouseFactsFields } from "@/components/house-facts";
@@ -21,6 +21,7 @@ function OwnersPage() {
   const upsertOwner = useRentalStore((s) => s.upsertOwner);
   const upsertHome = useRentalStore((s) => s.upsertHome);
   const addHouse = useHuntStore((s) => s.addHouse);
+  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
@@ -97,13 +98,18 @@ function OwnersPage() {
             });
           }
           setSaved(
-            `On the ledger as off-market (${homeId.slice(0, 6)}). Open the owner desk to put a light on.`,
+            `On the ledger as off-market (${homeId.slice(0, 6)}). Opening the house.`,
           );
           setName("");
           setPhone("");
           setAddress("");
           setNotes("");
           setFacts({ ...EMPTY_HOUSE_FACTS });
+          void navigate({
+            to: "/place/$placeId",
+            params: { placeId: homeId },
+            search: { want: intent === "sale" ? "sell" : "rent" },
+          });
         }}
       >
         <h2 className="font-display text-2xl">Bring a house</h2>
@@ -129,13 +135,17 @@ function OwnersPage() {
           />
         </Field>
         <Field label="City">
-          <Select value={city} onChange={(e) => setCity(e.target.value)}>
+          <Input
+            required
+            list="owner-cities"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+          />
+          <datalist id="owner-cities">
             {CITIES.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
+              <option key={c} value={c} />
             ))}
-          </Select>
+          </datalist>
         </Field>
         <Field label="Beds / baths">
           <Input

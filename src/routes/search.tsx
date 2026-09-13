@@ -171,13 +171,25 @@ function SearchPage() {
                   </p>
                 ) : null}
                 <p className="text-sm leading-relaxed text-muted">{h.notes}</p>
-                <Button
-                  onClick={() =>
-                    setAsk({ homeId: h.id, name: "", phone: "" })
-                  }
-                >
-                  Ask to be told
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                  <Link
+                    to="/place/$placeId"
+                    params={{ placeId: h.id }}
+                    className={cn(
+                      buttonVariants({ variant: "ghost" }),
+                      "no-underline",
+                    )}
+                  >
+                    Open the house
+                  </Link>
+                  <Button
+                    onClick={() =>
+                      setAsk({ homeId: h.id, name: "", phone: "" })
+                    }
+                  >
+                    Ask to be told
+                  </Button>
+                </div>
               </article>
               );
             })}
@@ -204,13 +216,28 @@ function SearchPage() {
                     {h.city} · {h.bedsBaths} · {h.owner}
                   </p>
                   <p className="text-sm leading-relaxed text-muted">{h.notes}</p>
-                  <Link
-                    to="/letters"
-                    search={{ house: h.id }}
-                    className={cn(buttonVariants({ variant: "ghost" }), "no-underline")}
-                  >
-                    Write the owner
-                  </Link>
+                  <div className="flex flex-wrap gap-2">
+                    <Link
+                      to="/place/$placeId"
+                      params={{ placeId: h.id }}
+                      className={cn(
+                        buttonVariants({ variant: "ghost" }),
+                        "no-underline",
+                      )}
+                    >
+                      Open the house
+                    </Link>
+                    <Link
+                      to="/letters"
+                      search={{ house: h.id }}
+                      className={cn(
+                        buttonVariants({ variant: "ghost" }),
+                        "no-underline",
+                      )}
+                    >
+                      Write the owner
+                    </Link>
+                  </div>
                 </article>
               ))}
             </div>

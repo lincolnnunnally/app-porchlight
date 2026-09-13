@@ -84,14 +84,18 @@ export function HouseForm({
         />
       </Field>
       <Field label="City">
-        <Select
+        <Input
+          required
+          list="house-form-cities"
           value={form.city}
+          placeholder="Vidalia"
           onChange={(e) => setForm({ ...form, city: e.target.value })}
-        >
+        />
+        <datalist id="house-form-cities">
           {CITIES.map((c) => (
-            <option key={c}>{c}</option>
+            <option key={c} value={c} />
           ))}
-        </Select>
+        </datalist>
       </Field>
       <Field label="Owner name (if you know it)">
         <Input
