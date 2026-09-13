@@ -21,6 +21,7 @@ import { Route as PacketRouteImport } from './routes/packet'
 import { Route as ProtectRouteImport } from './routes/protect'
 import { Route as RentRouteImport } from './routes/rent'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as ListingHomeIdRouteImport } from './routes/listing.$homeId'
 import { Route as PlacePlaceIdRouteImport } from './routes/place.$placeId'
 import { Route as ProtectIndexRouteImport } from './routes/protect.index'
 import { Route as ProtectCrisisRouteImport } from './routes/protect.crisis'
@@ -96,6 +97,11 @@ const RentRoute = RentRouteImport.update({
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ListingHomeIdRoute = ListingHomeIdRouteImport.update({
+  id: '/listing/$homeId',
+  path: '/listing/$homeId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlacePlaceIdRoute = PlacePlaceIdRouteImport.update({
@@ -192,6 +198,7 @@ export interface FileRoutesByFullPath {
   '/protect': typeof ProtectRouteWithChildren
   '/rent': typeof RentRouteWithChildren
   '/search': typeof SearchRoute
+  '/listing/$homeId': typeof ListingHomeIdRoute
   '/place/$placeId': typeof PlacePlaceIdRoute
   '/protect/crisis': typeof ProtectCrisisRoute
   '/protect/dashboard': typeof ProtectDashboardRoute
@@ -220,6 +227,7 @@ export interface FileRoutesByTo {
   '/owners': typeof OwnersRoute
   '/packet': typeof PacketRoute
   '/search': typeof SearchRoute
+  '/listing/$homeId': typeof ListingHomeIdRoute
   '/place/$placeId': typeof PlacePlaceIdRoute
   '/protect/crisis': typeof ProtectCrisisRoute
   '/protect/dashboard': typeof ProtectDashboardRoute
@@ -251,6 +259,7 @@ export interface FileRoutesById {
   '/protect': typeof ProtectRouteWithChildren
   '/rent': typeof RentRouteWithChildren
   '/search': typeof SearchRoute
+  '/listing/$homeId': typeof ListingHomeIdRoute
   '/place/$placeId': typeof PlacePlaceIdRoute
   '/protect/crisis': typeof ProtectCrisisRoute
   '/protect/dashboard': typeof ProtectDashboardRoute
@@ -283,6 +292,7 @@ export interface FileRouteTypes {
     | '/protect'
     | '/rent'
     | '/search'
+    | '/listing/$homeId'
     | '/place/$placeId'
     | '/protect/crisis'
     | '/protect/dashboard'
@@ -311,6 +321,7 @@ export interface FileRouteTypes {
     | '/owners'
     | '/packet'
     | '/search'
+    | '/listing/$homeId'
     | '/place/$placeId'
     | '/protect/crisis'
     | '/protect/dashboard'
@@ -341,6 +352,7 @@ export interface FileRouteTypes {
     | '/protect'
     | '/rent'
     | '/search'
+    | '/listing/$homeId'
     | '/place/$placeId'
     | '/protect/crisis'
     | '/protect/dashboard'
@@ -372,6 +384,7 @@ export interface RootRouteChildren {
   ProtectRoute: typeof ProtectRouteWithChildren
   RentRoute: typeof RentRouteWithChildren
   SearchRoute: typeof SearchRoute
+  ListingHomeIdRoute: typeof ListingHomeIdRoute
   PlacePlaceIdRoute: typeof PlacePlaceIdRoute
 }
 
@@ -459,6 +472,13 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/listing/$homeId': {
+      id: '/listing/$homeId'
+      path: '/listing/$homeId'
+      fullPath: '/listing/$homeId'
+      preLoaderRoute: typeof ListingHomeIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/place/$placeId': {
@@ -636,6 +656,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProtectRoute: ProtectRouteWithChildren,
   RentRoute: RentRouteWithChildren,
   SearchRoute: SearchRoute,
+  ListingHomeIdRoute: ListingHomeIdRoute,
   PlacePlaceIdRoute: PlacePlaceIdRoute,
 }
 export const routeTree = rootRouteImport

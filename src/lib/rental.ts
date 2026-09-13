@@ -27,7 +27,43 @@ export type NoticeKind =
   | "reminder"
   | "claim"
   | "demand_draft"
-  | "deposit_draft";
+  | "deposit_draft"
+  | "objection"
+  | "answer";
+
+/**
+ * One objection spine for rent and work. The household (or owner) says what
+ * is off; the manager answers with an outcome. "open" is the only state that
+ * waits on someone. Everything else is closed and both sides can read why.
+ */
+export type ObjectionOutcome =
+  | "open"
+  | "adjusted"
+  | "waived"
+  | "stands"
+  | "reopened"
+  | "declined";
+
+export type Objection = {
+  by: Party;
+  reason: string;
+  at: number;
+  outcome: ObjectionOutcome;
+  answer: string;
+  answeredAt: number | null;
+};
+
+export const OBJECTION_OUTCOMES: {
+  id: Exclude<ObjectionOutcome, "open">;
+  label: string;
+  on: "payment" | "work" | "both";
+}[] = [
+  { id: "adjusted", label: "Adjust the amount", on: "payment" },
+  { id: "waived", label: "Waive it", on: "payment" },
+  { id: "stands", label: "It stands — here is why", on: "both" },
+  { id: "reopened", label: "Back in the work", on: "work" },
+  { id: "declined", label: "Not now — here is why", on: "work" },
+];
 export type MoveKind = "in" | "out";
 export type CashKind = "sale" | "cash_out";
 export type CashStatus = "asked" | "in_hunt" | "done";
@@ -44,6 +80,8 @@ export type RentalHome = {
   ownerId: string;
   listing: ListingStatus;
   intent: HomeIntent;
+  /** When status last changed. Vacancy nudges count days from here. */
+  statusChangedAt?: number | null;
 } & HouseFactsSpine;
 
 export type Owner = {
@@ -99,6 +137,7 @@ export type Payment = {
   status: PayStatus;
   method: PayMethod;
   note: string;
+  objection?: Objection | null;
 };
 
 export type WorkOrder = {
@@ -111,6 +150,7 @@ export type WorkOrder = {
   who: string;
   vendorId: string;
   scheduledAt: number | null;
+  objection?: Objection | null;
 };
 
 export type WaitPerson = {
@@ -335,6 +375,7 @@ export const RENTAL_SEED = {
       ownerId: "o1",
       listing: "off_market" as ListingStatus,
       intent: "rent" as HomeIntent,
+      statusChangedAt: Date.now() - 1000 * 60 * 60 * 24 * 165,
       facts: {
         wifiNetwork: "ReedPorch",
         wifiPassword: "firstave312",
@@ -382,6 +423,7 @@ export const RENTAL_SEED = {
       ownerId: "o1",
       listing: "available" as ListingStatus,
       intent: "rent" as HomeIntent,
+      statusChangedAt: Date.now() - 1000 * 60 * 60 * 24 * 9,
       ...emptyHouseFactsSpine(),
       facts: {
         ...emptyHouseFactsSpine().facts,
@@ -424,6 +466,7 @@ export const RENTAL_SEED = {
       ownerId: "o1",
       listing: "available" as ListingStatus,
       intent: "both" as HomeIntent,
+      statusChangedAt: Date.now() - 1000 * 60 * 60 * 24 * 16,
       ...emptyHouseFactsSpine(),
     },
   ] satisfies RentalHome[],
@@ -673,6 +716,21 @@ export function bedsOf(bedsBaths: string) {
 
 export function isSearchable(home: RentalHome) {
   return home.listing === "available" && home.status !== "occupied";
+}
+
+export function daysBetween(from: number, to = Date.now()) {
+  return Math.max(0, Math.floor((to - from) / (1000 * 60 * 60 * 24)));
+}
+
+export function objectionOpen(row: { objection?: Objection | null }) {
+  return row.objection?.outcome === "open";
+}
+
+export function objectionLabel(outcome: ObjectionOutcome) {
+  return (
+    OBJECTION_OUTCOMES.find((o) => o.id === outcome)?.label ??
+    (outcome === "open" ? "Waiting on an answer" : outcome)
+  );
 }
 
 export function ownerInviteNote(name: string) {

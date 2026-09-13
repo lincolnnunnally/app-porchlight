@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { ListingShare } from "@/components/listing-share";
 import { Modal } from "@/components/modal";
+import { VacancyNudges } from "@/components/vacancy-nudge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { HouseFactsFields } from "@/components/house-facts";
@@ -8,6 +10,7 @@ import {
   EMPTY_HOUSE_FACTS,
   type HouseFacts,
 } from "@/lib/house-facts";
+import { bestFitsFor } from "@/lib/match";
 import {
   HOME_INTENTS,
   HOME_STATUSES,
@@ -63,6 +66,7 @@ function RentHomes() {
         <Stat label="Rent due" value={String(due.length)} />
         <Stat label="Open applications" value={String(openApps.length)} />
       </section>
+      <VacancyNudges />
       <div className="grid gap-4 sm:grid-cols-2">
         {homes.map((h) => {
           const lease = leases.find(
@@ -72,6 +76,7 @@ function RentHomes() {
           const waitingHere = waiting.filter(
             (p) => p.homeId === h.id || !p.homeId,
           ).length;
+          const fits = h.status === "occupied" ? [] : bestFitsFor(h, waitlist);
           return (
             <article
               key={h.id}
@@ -107,7 +112,11 @@ function RentHomes() {
               </p>
               <p className="text-sm text-muted">
                 {open} open work · {waitingHere} neighbors who asked
+                {fits.length
+                  ? ` · ${fits.length} fit${fits.length === 1 ? "s" : ""}, best: ${fits[0].person.name}`
+                  : ""}
               </p>
+              <ListingShare home={h} compact />
               <div className="mt-auto flex flex-wrap gap-2 pt-2">
                 <button
                   type="button"
