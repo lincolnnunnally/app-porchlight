@@ -2,6 +2,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { HouseFactsFields, HouseFactsSheet } from "@/components/house-facts";
 import { HouseForm } from "@/components/house-form";
+import { ListingShare } from "@/components/listing-share";
+import { MessageThread } from "@/components/message-thread";
 import { Modal } from "@/components/modal";
 import { PropertyLookups } from "@/components/property-lookups";
 import { StreetView } from "@/components/street-view";
@@ -51,10 +53,12 @@ function PlacePage() {
   const setHomeStatus = useRentalStore((s) => s.setHomeStatus);
   const saveHouseFacts = useRentalStore((s) => s.saveHouseFacts);
   const ackFacts = useRentalStore((s) => s.ackFacts);
+  // On the server the persisted stores have no `persist` API (no storage),
+  // so guard it: SSR renders the "opening" state and the client hydrates.
   const [hydrated, setHydrated] = useState(
     () =>
-      useHuntStore.persist.hasHydrated() &&
-      useRentalStore.persist.hasHydrated(),
+      Boolean(useHuntStore.persist?.hasHydrated?.()) &&
+      Boolean(useRentalStore.persist?.hasHydrated?.()),
   );
   const [editing, setEditing] = useState(false);
   const [factsDraft, setFactsDraft] = useState<HouseFacts | null>(null);
@@ -63,8 +67,8 @@ function PlacePage() {
   useEffect(() => {
     let alive = true;
     if (
-      useHuntStore.persist.hasHydrated() &&
-      useRentalStore.persist.hasHydrated()
+      useHuntStore.persist?.hasHydrated?.() &&
+      useRentalStore.persist?.hasHydrated?.()
     ) {
       setHydrated(true);
       return;
@@ -339,14 +343,17 @@ function PlacePage() {
           </div>
           {lease ? (
             <p className="text-sm text-muted">
-              Lease for {homeLabel(homes, lease.homeId)} ·{" "}
-              {formatMoney(lease.monthly)} / mo · {lease.status}
+              {lease.household}
+              {lease.phone ? ` · ${lease.phone}` : ""} · lease for{" "}
+              {homeLabel(homes, lease.homeId)} · {formatMoney(lease.monthly)} / mo
+              · {lease.status}
             </p>
           ) : (
             <p className="text-sm text-muted">
               No lease yet. Call the waitlist, or write one from Leases.
             </p>
           )}
+          <ListingShare home={rent} />
           <HouseFactsSheet
             home={rent}
             party="owner"
@@ -372,6 +379,7 @@ function PlacePage() {
               ) : null}
             </form>
           ) : null}
+          <MessageThread homeId={rent.id} from="owner" />
         </section>
       ) : (
         <Button onClick={operateAsRental}>Keep a rental record here</Button>

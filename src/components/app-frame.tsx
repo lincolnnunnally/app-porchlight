@@ -243,7 +243,6 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     void useRentalStore.persist.rehydrate();
     void useStewardStore.persist.rehydrate();
     void useLegalStore.persist.rehydrate();
-    void useRentalStore.persist.rehydrate();
   }, []);
 
   const pathname = useRouterState({ select: (s) => s.location.pathname });

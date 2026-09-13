@@ -5,6 +5,8 @@ import { Field, Input, Select } from "@/components/ui/field";
 import { CITIES } from "@/lib/hunt";
 import { useHuntStore } from "@/lib/hunt-store";
 import { listingFacts } from "@/lib/house-facts";
+import { encodeListing, publicListingFrom } from "@/lib/listing";
+import { listingContactFor } from "@/lib/listing-contact";
 import {
   bedsOf,
   homeLabel,
@@ -180,6 +182,19 @@ function SearchPage() {
                     )}
                   >
                     Open the house
+                  </Link>
+                  <Link
+                    to="/listing/$homeId"
+                    params={{ homeId: h.id }}
+                    search={{
+                      d: encodeListing(publicListingFrom(h, listingContactFor(h))),
+                    }}
+                    className={cn(
+                      buttonVariants({ variant: "ghost" }),
+                      "no-underline",
+                    )}
+                  >
+                    Public listing
                   </Link>
                   <Button
                     onClick={() =>

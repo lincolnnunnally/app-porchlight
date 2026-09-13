@@ -6,6 +6,7 @@ import {
   RENTAL_SEED,
   periodKey,
   periodDue,
+  periodLabel,
   payRequestText,
   type AppStatus,
   type Application,
@@ -22,6 +23,7 @@ import {
   type MoveKind,
   type MoveRecord,
   type Notice,
+  type ObjectionOutcome,
   type Owner,
   type Party,
   type PayMethod,
@@ -81,9 +83,26 @@ type RentalActions = {
   setPayStatus: (id: string, status: PayStatus, method?: PayMethod) => void;
   setPayMethod: (id: string, method: PayMethod) => void;
   claimPayment: (id: string) => void;
+  /** Household or owner says a charge is off. Opens an objection on the row. */
+  objectPayment: (id: string, by: Party, reason: string) => void;
+  /** Manager closes it: adjust (new amount), waive, or it stands with a reason. */
+  answerPayment: (
+    id: string,
+    outcome: Exclude<ObjectionOutcome, "open" | "reopened" | "declined">,
+    answer: string,
+    newAmount?: number,
+  ) => void;
   generateDues: () => number;
   upsertWork: (row: Omit<WorkOrder, "id"> & { id?: string }) => string;
   setWorkStatus: (id: string, status: WorkStatus) => void;
+  /** Household says the work is not done or not right. Puts it back in "needed". */
+  pushBackWork: (id: string, by: Party, reason: string) => void;
+  /** Manager closes it: back in the work, not now with a reason, or it stands. */
+  answerWork: (
+    id: string,
+    outcome: Exclude<ObjectionOutcome, "open" | "adjusted" | "waived">,
+    answer: string,
+  ) => void;
   upsertWait: (
     row: Omit<WaitPerson, "id" | "addedAt"> & { id?: string; addedAt?: number },
   ) => string;
@@ -170,6 +189,7 @@ export const useRentalStore = create<RentalData & RentalActions>()(
           const created = withHouseFactsSpine({
             ...row,
             id,
+            statusChangedAt: row.statusChangedAt ?? Date.now(),
             facts: normalizeHouseFacts(row.facts),
             factsVersion: 1,
             factsUpdatedAt: Date.now(),
@@ -179,7 +199,15 @@ export const useRentalStore = create<RentalData & RentalActions>()(
           set((s) => ({ homes: patchList(s.homes, created) }));
           return id;
         }
-        const merged = withHouseFactsSpine({ ...prev, ...row, id });
+        const merged = withHouseFactsSpine({
+          ...prev,
+          ...row,
+          id,
+          statusChangedAt:
+            row.status && row.status !== prev.status
+              ? Date.now()
+              : prev.statusChangedAt ?? null,
+        });
         const next = row.facts
           ? applyFactsAmendment(
               {
@@ -210,7 +238,16 @@ export const useRentalStore = create<RentalData & RentalActions>()(
         })),
       setHomeStatus: (id, status) =>
         set((s) => ({
-          homes: s.homes.map((h) => (h.id === id ? { ...h, status } : h)),
+          homes: s.homes.map((h) =>
+            h.id === id
+              ? {
+                  ...h,
+                  status,
+                  statusChangedAt:
+                    h.status === status ? h.statusChangedAt ?? null : Date.now(),
+                }
+              : h,
+          ),
         })),
       upsertLease: (row) => {
         const id = row.id ?? uid("l");
@@ -256,6 +293,90 @@ export const useRentalStore = create<RentalData & RentalActions>()(
             p.id === id ? { ...p, claimedAt: Date.now() } : p,
           ),
         })),
+      objectPayment: (id, by, reason) =>
+        set((s) => {
+          const pay = s.payments.find((p) => p.id === id);
+          if (!pay || !reason.trim()) return {};
+          const at = Date.now();
+          return {
+            payments: s.payments.map((p) =>
+              p.id === id
+                ? {
+                    ...p,
+                    objection: {
+                      by,
+                      reason: reason.trim(),
+                      at,
+                      outcome: "open",
+                      answer: "",
+                      answeredAt: null,
+                    },
+                  }
+                : p,
+            ),
+            notices: [
+              {
+                id: uid("t"),
+                homeId: pay.homeId,
+                leaseId: pay.leaseId,
+                kind: "objection",
+                at,
+                body: `${by === "renter" ? "Household" : by === "owner" ? "Owner" : "Manager"} says ${periodLabel(pay.period)} rent is off: ${reason.trim()}`,
+              },
+              ...s.notices,
+            ],
+          };
+        }),
+      answerPayment: (id, outcome, answer, newAmount) =>
+        set((s) => {
+          const pay = s.payments.find((p) => p.id === id);
+          if (!pay?.objection) return {};
+          const at = Date.now();
+          const amount =
+            outcome === "adjusted" && typeof newAmount === "number" && newAmount >= 0
+              ? newAmount
+              : pay.amount;
+          const status: PayStatus =
+            outcome === "waived"
+              ? "waived"
+              : outcome === "adjusted" && amount === 0
+                ? "waived"
+                : pay.status;
+          const word =
+            outcome === "adjusted"
+              ? `adjusted to $${amount}`
+              : outcome === "waived"
+                ? "waived"
+                : "stands as billed";
+          return {
+            payments: s.payments.map((p) =>
+              p.id === id
+                ? {
+                    ...p,
+                    amount,
+                    status,
+                    objection: {
+                      ...p.objection!,
+                      outcome,
+                      answer: answer.trim(),
+                      answeredAt: at,
+                    },
+                  }
+                : p,
+            ),
+            notices: [
+              {
+                id: uid("t"),
+                homeId: pay.homeId,
+                leaseId: pay.leaseId,
+                kind: "answer",
+                at,
+                body: `${periodLabel(pay.period)} rent ${word}. ${answer.trim()}`.trim(),
+              },
+              ...s.notices,
+            ],
+          };
+        }),
       generateDues: () => {
         const period = periodKey(new Date());
         let added = 0;
@@ -293,6 +414,88 @@ export const useRentalStore = create<RentalData & RentalActions>()(
         set((s) => ({
           work: s.work.map((h) => (h.id === id ? { ...h, status } : h)),
         })),
+      pushBackWork: (id, by, reason) =>
+        set((s) => {
+          const w = s.work.find((x) => x.id === id);
+          if (!w || !reason.trim()) return {};
+          const at = Date.now();
+          const lease = s.leases.find(
+            (l) => l.homeId === w.homeId && (l.status === "active" || l.status === "draft"),
+          );
+          return {
+            work: s.work.map((x) =>
+              x.id === id
+                ? {
+                    ...x,
+                    status: "needed",
+                    objection: {
+                      by,
+                      reason: reason.trim(),
+                      at,
+                      outcome: "open",
+                      answer: "",
+                      answeredAt: null,
+                    },
+                  }
+                : x,
+            ),
+            notices: [
+              {
+                id: uid("t"),
+                homeId: w.homeId,
+                leaseId: lease?.id ?? "",
+                kind: "objection",
+                at,
+                body: `"${w.title}" is not right yet: ${reason.trim()}`,
+              },
+              ...s.notices,
+            ],
+          };
+        }),
+      answerWork: (id, outcome, answer) =>
+        set((s) => {
+          const w = s.work.find((x) => x.id === id);
+          if (!w?.objection) return {};
+          const at = Date.now();
+          const lease = s.leases.find(
+            (l) => l.homeId === w.homeId && (l.status === "active" || l.status === "draft"),
+          );
+          const status: WorkStatus =
+            outcome === "reopened" ? "doing" : outcome === "declined" ? "done" : w.status;
+          const word =
+            outcome === "reopened"
+              ? "is back in the work"
+              : outcome === "declined"
+                ? "will not be done right now"
+                : "stands as done";
+          return {
+            work: s.work.map((x) =>
+              x.id === id
+                ? {
+                    ...x,
+                    status,
+                    objection: {
+                      ...x.objection!,
+                      outcome,
+                      answer: answer.trim(),
+                      answeredAt: at,
+                    },
+                  }
+                : x,
+            ),
+            notices: [
+              {
+                id: uid("t"),
+                homeId: w.homeId,
+                leaseId: lease?.id ?? "",
+                kind: "answer",
+                at,
+                body: `"${w.title}" ${word}. ${answer.trim()}`.trim(),
+              },
+              ...s.notices,
+            ],
+          };
+        }),
       upsertWait: (row) => {
         const id = row.id ?? uid("n");
         set((s) => {
@@ -415,7 +618,12 @@ export const useRentalStore = create<RentalData & RentalActions>()(
           moves: [move, ...s.moves],
           homes: s.homes.map((h) =>
             h.id === app.homeId
-              ? { ...h, status: "occupied" as HomeStatus, listing: "off_market" }
+              ? {
+                  ...h,
+                  status: "occupied" as HomeStatus,
+                  listing: "off_market",
+                  statusChangedAt: h.status === "occupied" ? h.statusChangedAt ?? null : Date.now(),
+                }
               : h,
           ),
         }));
@@ -597,7 +805,12 @@ export const useRentalStore = create<RentalData & RentalActions>()(
             );
             homes = homes.map((h) =>
               h.id === move.homeId
-                ? { ...h, status: "occupied", listing: "off_market" }
+                ? {
+                    ...h,
+                    status: "occupied",
+                    listing: "off_market",
+                    statusChangedAt: h.status === "occupied" ? h.statusChangedAt ?? null : Date.now(),
+                  }
                 : h,
             );
           }
@@ -612,7 +825,12 @@ export const useRentalStore = create<RentalData & RentalActions>()(
             );
             homes = homes.map((h) =>
               h.id === move.homeId
-                ? { ...h, status: "vacant", listing: "available" }
+                ? {
+                    ...h,
+                    status: "vacant",
+                    listing: "available",
+                    statusChangedAt: h.status === "vacant" ? h.statusChangedAt ?? null : Date.now(),
+                  }
                 : h,
             );
           }
@@ -654,6 +872,7 @@ export const useRentalStore = create<RentalData & RentalActions>()(
             listing:
               h.listing ?? (h.status === "occupied" ? "off_market" : "available"),
             intent: h.intent ?? "rent",
+            statusChangedAt: h.statusChangedAt ?? seeded?.statusChangedAt ?? null,
             factsAcks: mergeFactsAcks(
               h.factsAcks ?? [],
               seeded?.factsAcks ?? [],
@@ -671,11 +890,13 @@ export const useRentalStore = create<RentalData & RentalActions>()(
           ...x,
           method: x.method ?? ("cash" as PayMethod),
           claimedAt: x.claimedAt ?? null,
+          objection: x.objection ?? null,
         }));
         const work = (p.work ?? current.work).map((w) => ({
           ...w,
           vendorId: w.vendorId ?? "",
           scheduledAt: w.scheduledAt ?? null,
+          objection: w.objection ?? null,
         }));
         const waitlist = (p.waitlist ?? current.waitlist).map((n) => ({
           ...n,

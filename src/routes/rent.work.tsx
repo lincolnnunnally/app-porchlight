@@ -1,18 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Modal } from "@/components/modal";
+import { AnswerObjection, ObjectionNote } from "@/components/objection";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import {
   WORK_STATUSES,
   homeLabel,
+  objectionOpen,
   parseIso,
   type Vendor,
   type WorkOrder,
   type WorkStatus,
 } from "@/lib/rental";
 import { useRentalStore } from "@/lib/rental-store";
-import { formatDate, formatMoney } from "@/lib/utils";
+import { cn, formatDate, formatMoney } from "@/lib/utils";
 
 export const Route = createFileRoute("/rent/work")({ component: WorkPage });
 
@@ -23,8 +25,10 @@ function WorkPage() {
   const upsertWork = useRentalStore((s) => s.upsertWork);
   const setWorkStatus = useRentalStore((s) => s.setWorkStatus);
   const upsertVendor = useRentalStore((s) => s.upsertVendor);
+  const answerWork = useRentalStore((s) => s.answerWork);
   const [open, setOpen] = useState(false);
   const [vendorOpen, setVendorOpen] = useState(false);
+  const questions = work.filter((w) => objectionOpen(w)).length;
 
   return (
     <div className="grid gap-6">
@@ -33,8 +37,14 @@ function WorkPage() {
           <h1 className="font-display text-3xl">Work that needs hands</h1>
           <p className="mt-1 max-w-2xl text-muted">
             Repair with your hands. Log the cost. Put a day on it. Do not
-            over-improve a house someone already lives in.
+            over-improve a house someone already lives in. When a household
+            says a job is not right, answer it here so both sides see why.
           </p>
+          {questions ? (
+            <p className="mt-2 text-sm text-gold-2">
+              {questions} job{questions === 1 ? "" : "s"} waiting on your answer.
+            </p>
+          ) : null}
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="ghost" onClick={() => setVendorOpen(true)}>
@@ -69,7 +79,10 @@ function WorkPage() {
                   items.map((w) => (
                     <article
                       key={w.id}
-                      className="grid gap-1 rounded-lg border border-line bg-panel p-4"
+                      className={cn(
+                        "grid gap-1 rounded-lg border bg-panel p-4",
+                        objectionOpen(w) ? "border-gold/60" : "border-line",
+                      )}
                     >
                       <h3 className="font-display text-lg leading-snug">
                         {w.title}
@@ -86,6 +99,13 @@ function WorkPage() {
                       <p className="text-sm leading-relaxed text-muted">
                         {w.detail}
                       </p>
+                      <ObjectionNote objection={w.objection} />
+                      {objectionOpen(w) ? (
+                        <AnswerObjection
+                          kind="work"
+                          onAnswer={(outcome, answer) => answerWork(w.id, outcome, answer)}
+                        />
+                      ) : null}
                       <Select
                         value={w.status}
                         className="mt-2"
