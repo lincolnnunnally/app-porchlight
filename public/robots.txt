@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /dash
+Disallow: /attorney
+
+Sitemap: https://porchlight.unitedundergod.org/sitemap.xml
