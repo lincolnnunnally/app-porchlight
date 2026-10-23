@@ -8,10 +8,12 @@ import {
   type LetterKind,
 } from "@/lib/hunt";
 import { useHuntStore } from "@/lib/hunt-store";
+import { privateHead } from "@/lib/seo";
 
 type Search = { house?: string };
 
 export const Route = createFileRoute("/letters")({
+  head: () => privateHead("Letters"),
   validateSearch: (s: Record<string, unknown>): Search => ({
     house: typeof s.house === "string" ? s.house : undefined,
   }),

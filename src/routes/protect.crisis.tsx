@@ -3,8 +3,16 @@ import { AttorneyFlag, Disclaimer } from "@/components/attorney-flag";
 import { buttonVariants } from "@/components/ui/button";
 import { OFFICIAL_LINKS } from "@/lib/georgia";
 import { cn } from "@/lib/utils";
+import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/protect/crisis")({
+  head: () =>
+    pageHead({
+      title: "Care needed now? Don’t move title yet | Porchlight",
+      description:
+        "If nursing-home or long-term Medicaid care is needed now or likely within five years, do not move title. Talk to a Georgia elder-law attorney first.",
+      path: "/protect/crisis",
+    }),
   component: CrisisPage,
 });
 

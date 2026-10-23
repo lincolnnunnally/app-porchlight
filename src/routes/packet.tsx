@@ -1,8 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AttorneyFlag } from "@/components/attorney-flag";
 import { VNEXT_PACKET } from "@/lib/vnext-packet";
+import { privateHead } from "@/lib/seo";
 
-export const Route = createFileRoute("/packet")({ component: PacketDoc });
+export const Route = createFileRoute("/packet")({
+  head: () => privateHead("vNext packet"),
+  component: PacketDoc,
+});
 
 function PacketDoc() {
   const p = VNEXT_PACKET;

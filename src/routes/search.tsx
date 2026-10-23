@@ -14,8 +14,29 @@ import {
 } from "@/lib/rental";
 import { useRentalStore } from "@/lib/rental-store";
 import { cn, formatMoney } from "@/lib/utils";
+import { LOCAL_AREA, pageHead, serviceLd } from "@/lib/seo";
 
-export const Route = createFileRoute("/search")({ component: SearchPage });
+export const Route = createFileRoute("/search")({
+  head: () =>
+    pageHead({
+      title: "Fair-rent houses and quiet sales in Vidalia, GA | Porchlight",
+      description:
+        "Find a place to live in Vidalia and Toombs County: fair rent for working families, or a quiet buy that still needs hands. Not Zillow. Owners turn the light on.",
+      path: "/search",
+      jsonLd: [
+        serviceLd({
+          name: "Find a place to live",
+          description:
+            "Find a place to live in Vidalia and Toombs County: fair rent for working families, or a quiet buy that still needs hands. Not Zillow. Owners turn the light on.",
+          path: "/search",
+          serviceType: "Fair-rent homes and quiet house sales",
+          areaServed: LOCAL_AREA,
+          audience: "People looking for a home to rent or buy",
+        }),
+      ],
+    }),
+  component: SearchPage,
+});
 
 function SearchPage() {
   const homes = useRentalStore((s) => s.homes);

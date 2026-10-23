@@ -7,8 +7,12 @@ import { Modal } from "@/components/modal";
 import { Button } from "@/components/ui/button";
 import { STAGES, type House } from "@/lib/hunt";
 import { useHuntStore } from "@/lib/hunt-store";
+import { privateHead } from "@/lib/seo";
 
-export const Route = createFileRoute("/hunt")({ component: HuntPage });
+export const Route = createFileRoute("/hunt")({
+  head: () => privateHead("Hunt"),
+  component: HuntPage,
+});
 
 function HuntPage() {
   const houses = useHuntStore((s) => s.houses);

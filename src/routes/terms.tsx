@@ -1,6 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { pageHead } from "@/lib/seo";
 
-export const Route = createFileRoute("/terms")({ component: TermsPage });
+export const Route = createFileRoute("/terms")({
+  head: () =>
+    pageHead({
+      title: "Terms — what Porchlight is, and is not | Porchlight",
+      description:
+        "Porchlight is not legal advice, a listing service, a closed sale, or a tax receipt. Georgia estate recovery copy is education, and an attorney still signs.",
+      path: "/terms",
+    }),
+  component: TermsPage,
+});
 
 function TermsPage() {
   return (

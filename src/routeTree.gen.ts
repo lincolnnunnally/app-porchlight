@@ -13,9 +13,12 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AttorneyRouteImport } from './routes/attorney'
 import { Route as ConnectRouteImport } from './routes/connect'
 import { Route as DashRouteImport } from './routes/dash'
+import { Route as DonateAHouseRouteImport } from './routes/donate-a-house'
+import { Route as FairRentDeskRouteImport } from './routes/fair-rent-desk'
 import { Route as HousesRouteImport } from './routes/houses'
 import { Route as HuntRouteImport } from './routes/hunt'
 import { Route as LettersRouteImport } from './routes/letters'
+import { Route as OffMarketHousesRouteImport } from './routes/off-market-houses'
 import { Route as OwnersRouteImport } from './routes/owners'
 import { Route as PacketRouteImport } from './routes/packet'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -61,6 +64,16 @@ const DashRoute = DashRouteImport.update({
   path: '/dash',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DonateAHouseRoute = DonateAHouseRouteImport.update({
+  id: '/donate-a-house',
+  path: '/donate-a-house',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FairRentDeskRoute = FairRentDeskRouteImport.update({
+  id: '/fair-rent-desk',
+  path: '/fair-rent-desk',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HousesRoute = HousesRouteImport.update({
   id: '/houses',
   path: '/houses',
@@ -74,6 +87,11 @@ const HuntRoute = HuntRouteImport.update({
 const LettersRoute = LettersRouteImport.update({
   id: '/letters',
   path: '/letters',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OffMarketHousesRoute = OffMarketHousesRouteImport.update({
+  id: '/off-market-houses',
+  path: '/off-market-houses',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OwnersRoute = OwnersRouteImport.update({
@@ -202,9 +220,12 @@ export interface FileRoutesByFullPath {
   '/attorney': typeof AttorneyRoute
   '/connect': typeof ConnectRoute
   '/dash': typeof DashRoute
+  '/donate-a-house': typeof DonateAHouseRoute
+  '/fair-rent-desk': typeof FairRentDeskRoute
   '/houses': typeof HousesRoute
   '/hunt': typeof HuntRoute
   '/letters': typeof LettersRoute
+  '/off-market-houses': typeof OffMarketHousesRoute
   '/owners': typeof OwnersRoute
   '/packet': typeof PacketRoute
   '/privacy': typeof PrivacyRoute
@@ -235,9 +256,12 @@ export interface FileRoutesByTo {
   '/attorney': typeof AttorneyRoute
   '/connect': typeof ConnectRoute
   '/dash': typeof DashRoute
+  '/donate-a-house': typeof DonateAHouseRoute
+  '/fair-rent-desk': typeof FairRentDeskRoute
   '/houses': typeof HousesRoute
   '/hunt': typeof HuntRoute
   '/letters': typeof LettersRoute
+  '/off-market-houses': typeof OffMarketHousesRoute
   '/owners': typeof OwnersRoute
   '/packet': typeof PacketRoute
   '/privacy': typeof PrivacyRoute
@@ -267,9 +291,12 @@ export interface FileRoutesById {
   '/attorney': typeof AttorneyRoute
   '/connect': typeof ConnectRoute
   '/dash': typeof DashRoute
+  '/donate-a-house': typeof DonateAHouseRoute
+  '/fair-rent-desk': typeof FairRentDeskRoute
   '/houses': typeof HousesRoute
   '/hunt': typeof HuntRoute
   '/letters': typeof LettersRoute
+  '/off-market-houses': typeof OffMarketHousesRoute
   '/owners': typeof OwnersRoute
   '/packet': typeof PacketRoute
   '/privacy': typeof PrivacyRoute
@@ -302,9 +329,12 @@ export interface FileRouteTypes {
     | '/attorney'
     | '/connect'
     | '/dash'
+    | '/donate-a-house'
+    | '/fair-rent-desk'
     | '/houses'
     | '/hunt'
     | '/letters'
+    | '/off-market-houses'
     | '/owners'
     | '/packet'
     | '/privacy'
@@ -335,9 +365,12 @@ export interface FileRouteTypes {
     | '/attorney'
     | '/connect'
     | '/dash'
+    | '/donate-a-house'
+    | '/fair-rent-desk'
     | '/houses'
     | '/hunt'
     | '/letters'
+    | '/off-market-houses'
     | '/owners'
     | '/packet'
     | '/privacy'
@@ -366,9 +399,12 @@ export interface FileRouteTypes {
     | '/attorney'
     | '/connect'
     | '/dash'
+    | '/donate-a-house'
+    | '/fair-rent-desk'
     | '/houses'
     | '/hunt'
     | '/letters'
+    | '/off-market-houses'
     | '/owners'
     | '/packet'
     | '/privacy'
@@ -400,9 +436,12 @@ export interface RootRouteChildren {
   AttorneyRoute: typeof AttorneyRoute
   ConnectRoute: typeof ConnectRoute
   DashRoute: typeof DashRoute
+  DonateAHouseRoute: typeof DonateAHouseRoute
+  FairRentDeskRoute: typeof FairRentDeskRoute
   HousesRoute: typeof HousesRoute
   HuntRoute: typeof HuntRoute
   LettersRoute: typeof LettersRoute
+  OffMarketHousesRoute: typeof OffMarketHousesRoute
   OwnersRoute: typeof OwnersRoute
   PacketRoute: typeof PacketRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -444,6 +483,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/donate-a-house': {
+      id: '/donate-a-house'
+      path: '/donate-a-house'
+      fullPath: '/donate-a-house'
+      preLoaderRoute: typeof DonateAHouseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fair-rent-desk': {
+      id: '/fair-rent-desk'
+      path: '/fair-rent-desk'
+      fullPath: '/fair-rent-desk'
+      preLoaderRoute: typeof FairRentDeskRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/houses': {
       id: '/houses'
       path: '/houses'
@@ -463,6 +516,13 @@ declare module '@tanstack/react-router' {
       path: '/letters'
       fullPath: '/letters'
       preLoaderRoute: typeof LettersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/off-market-houses': {
+      id: '/off-market-houses'
+      path: '/off-market-houses'
+      fullPath: '/off-market-houses'
+      preLoaderRoute: typeof OffMarketHousesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/owners': {
@@ -688,9 +748,12 @@ const rootRouteChildren: RootRouteChildren = {
   AttorneyRoute: AttorneyRoute,
   ConnectRoute: ConnectRoute,
   DashRoute: DashRoute,
+  DonateAHouseRoute: DonateAHouseRoute,
+  FairRentDeskRoute: FairRentDeskRoute,
   HousesRoute: HousesRoute,
   HuntRoute: HuntRoute,
   LettersRoute: LettersRoute,
+  OffMarketHousesRoute: OffMarketHousesRoute,
   OwnersRoute: OwnersRoute,
   PacketRoute: PacketRoute,
   PrivacyRoute: PrivacyRoute,

@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://porchlight.unitedundergod.org/</loc></url>
+  <url><loc>https://porchlight.unitedundergod.org/off-market-houses</loc></url>
   <url><loc>https://porchlight.unitedundergod.org/search</loc></url>
   <url><loc>https://porchlight.unitedundergod.org/protect</loc></url>
   <url><loc>https://porchlight.unitedundergod.org/protect/quiz</loc></url>
-  <url><loc>https://porchlight.unitedundergod.org/hunt</loc></url>
-  <url><loc>https://porchlight.unitedundergod.org/rent</loc></url>
+  <url><loc>https://porchlight.unitedundergod.org/protect/crisis</loc></url>
+  <url><loc>https://porchlight.unitedundergod.org/owners</loc></url>
+  <url><loc>https://porchlight.unitedundergod.org/fair-rent-desk</loc></url>
+  <url><loc>https://porchlight.unitedundergod.org/donate-a-house</loc></url>
+  <url><loc>https://porchlight.unitedundergod.org/connect</loc></url>
   <url><loc>https://porchlight.unitedundergod.org/privacy</loc></url>
   <url><loc>https://porchlight.unitedundergod.org/terms</loc></url>
 </urlset>

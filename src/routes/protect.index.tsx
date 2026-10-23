@@ -3,10 +3,29 @@ import { AttorneyFlag, Disclaimer } from "@/components/attorney-flag";
 import { buttonVariants } from "@/components/ui/button";
 import { GEORGIA_FACTS, OFFICIAL_LINKS } from "@/lib/georgia";
 import { cn } from "@/lib/utils";
+import { GEORGIA, pageHead, serviceLd } from "@/lib/seo";
 
 type Search = { ref?: string };
 
 export const Route = createFileRoute("/protect/")({
+  head: () =>
+    pageHead({
+      title: "Georgia Medicaid estate recovery: plan ahead | Porchlight",
+      description:
+        "For Georgia families still well: what Medicaid estate recovery is, in plain words with sources, and how to plan five or more years ahead with an attorney.",
+      path: "/protect",
+      jsonLd: [
+        serviceLd({
+          name: "Keep use of a home",
+          description:
+            "For Georgia families still well: what Medicaid estate recovery is, in plain words with sources, and how to plan five or more years ahead with an attorney.",
+          path: "/protect",
+          serviceType: "Georgia Medicaid estate recovery planning education",
+          areaServed: GEORGIA,
+          audience: "Georgia families planning for an aging parent",
+        }),
+      ],
+    }),
   validateSearch: (s: Record<string, unknown>): Search => ({
     ref: typeof s.ref === "string" ? s.ref : undefined,
   }),

@@ -1,6 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { pageHead } from "@/lib/seo";
 
-export const Route = createFileRoute("/privacy")({ component: PrivacyPage });
+export const Route = createFileRoute("/privacy")({
+  head: () =>
+    pageHead({
+      title: "Privacy — what this notebook holds | Porchlight",
+      description:
+        "Porchlight is a house notebook. Until accounts are on, what you enter stays on this device. We do not sell lists of neighbors or run credit pulls.",
+      path: "/privacy",
+    }),
+  component: PrivacyPage,
+});
 
 function PrivacyPage() {
   return (

@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Field, Input, Select } from "@/components/ui/field";
 import { useStewardStore } from "@/lib/steward-store";
 import { formatDate, formatMoney } from "@/lib/utils";
+import { privateHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/protect/dashboard")({
+  head: () => privateHead("After filing"),
   component: DashboardPage,
 });
 

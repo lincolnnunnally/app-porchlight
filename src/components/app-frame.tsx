@@ -7,6 +7,7 @@ import { useLegalStore } from "@/lib/legal-store";
 import { useRentalStore } from "@/lib/rental-store";
 import { useStewardStore } from "@/lib/steward-store";
 import { cn } from "@/lib/utils";
+import { ServiceLinks } from "@/components/service-links";
 
 type Door = { to: string; label: string };
 
@@ -306,7 +307,10 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
       </nav>
       <footer className="border-t border-line pb-24 md:pb-0">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-4 py-6 text-sm text-muted sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <p>People are the purpose. We do not take houses.</p>
+          <div className="grid gap-3">
+            <p>People are the purpose. We do not take houses.</p>
+            <ServiceLinks />
+          </div>
           <p className="flex flex-wrap gap-3">
             <Link to="/privacy" className="text-muted hover:text-gold-2">
               Privacy

@@ -6,8 +6,10 @@ import { FEE_PRINCIPLES, FEE_SCHEDULE } from "@/lib/fees";
 import { intakeComplete } from "@/lib/steward";
 import { useStewardStore } from "@/lib/steward-store";
 import { cn } from "@/lib/utils";
+import { privateHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/protect/fees")({
+  head: () => privateHead("Fees"),
   component: FeesPage,
 });
 
