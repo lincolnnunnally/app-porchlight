@@ -13,8 +13,10 @@ import { useLegalStore } from "@/lib/legal-store";
 import { templateValues } from "@/lib/steward";
 import { useStewardStore } from "@/lib/steward-store";
 import { cn } from "@/lib/utils";
+import { privateHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/protect/packet")({
+  head: () => privateHead("Packet"),
   component: PacketPage,
 });
 

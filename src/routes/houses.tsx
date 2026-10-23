@@ -8,8 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/field";
 import type { House } from "@/lib/hunt";
 import { useHuntStore } from "@/lib/hunt-store";
+import { privateHead } from "@/lib/seo";
 
-export const Route = createFileRoute("/houses")({ component: HousesPage });
+export const Route = createFileRoute("/houses")({
+  head: () => privateHead("Houses"),
+  component: HousesPage,
+});
 
 function HousesPage() {
   const houses = useHuntStore((s) => s.houses);

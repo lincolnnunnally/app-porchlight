@@ -20,8 +20,12 @@ import {
 import { fillTemplate } from "@/lib/templates";
 import { templateValues } from "@/lib/steward";
 import { cn } from "@/lib/utils";
+import { privateHead } from "@/lib/seo";
 
-export const Route = createFileRoute("/attorney")({ component: AttorneyPage });
+export const Route = createFileRoute("/attorney")({
+  head: () => privateHead("Attorney desk"),
+  component: AttorneyPage,
+});
 
 function AttorneyPage() {
   const reviews = useLegalStore((s) => s.reviews);

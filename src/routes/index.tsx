@@ -9,8 +9,28 @@ import {
 import { EnterPlaceForm } from "@/components/enter-place";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { SITE_URL, pageHead } from "@/lib/seo";
+import { ServiceLinks } from "@/components/service-links";
 
-export const Route = createFileRoute("/")({ component: Home });
+export const Route = createFileRoute("/")({
+  head: () =>
+    pageHead({
+      title: "Porchlight — off-market houses, fair rent, Vidalia GA",
+      description:
+        "Look up a house in Vidalia or Toombs County, GA: hunt it before it lists, keep use of a home, rent it fairly, sell it quietly, or find a place to live.",
+      path: "/",
+      jsonLd: [
+        {
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "Porchlight",
+          url: `${SITE_URL}/`,
+          publisher: { "@id": `${SITE_URL}/#org` },
+        },
+      ],
+    }),
+  component: Home,
+});
 
 function Home() {
   return (
@@ -78,6 +98,11 @@ function Home() {
             action="For owners"
           />
         </div>
+      </section>
+
+      <section className="grid gap-3">
+        <h2 className="font-display text-2xl">How each one works</h2>
+        <ServiceLinks className="grid gap-2 sm:grid-cols-2" itemClassName="text-gold-2" />
       </section>
     </div>
   );

@@ -20,10 +20,12 @@ import { findPlace } from "@/lib/place";
 import { HOME_STATUSES, type HomeStatus } from "@/lib/rental";
 import { useRentalStore } from "@/lib/rental-store";
 import { cn, formatMoney } from "@/lib/utils";
+import { privateHead } from "@/lib/seo";
 
 type PlaceSearch = { want?: PlacePurpose };
 
 export const Route = createFileRoute("/place/$placeId")({
+  head: () => privateHead("House"),
   component: PlacePage,
   validateSearch: (search: Record<string, unknown>): PlaceSearch => ({
     want:

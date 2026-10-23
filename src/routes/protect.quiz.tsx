@@ -9,10 +9,18 @@ import { findPlace } from "@/lib/place";
 import { useRentalStore } from "@/lib/rental-store";
 import type { QuizAnswers } from "@/lib/steward";
 import { useStewardStore } from "@/lib/steward-store";
+import { pageHead } from "@/lib/seo";
 
 type Search = { place?: string };
 
 export const Route = createFileRoute("/protect/quiz")({
+  head: () =>
+    pageHead({
+      title: "Is it the right season to plan for the house? | Porchlight",
+      description:
+        "A short quiz for Georgia families: is someone still well enough to plan five or more years ahead, or is care already needed? It sends you to the right next step.",
+      path: "/protect/quiz",
+    }),
   validateSearch: (s: Record<string, unknown>): Search => ({
     place: typeof s.place === "string" && s.place ? s.place : undefined,
   }),

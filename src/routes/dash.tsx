@@ -25,8 +25,12 @@ import {
 } from "@/lib/rental";
 import { useRentalStore } from "@/lib/rental-store";
 import { cn, formatMoney } from "@/lib/utils";
+import { privateHead } from "@/lib/seo";
 
-export const Route = createFileRoute("/dash")({ component: DashPage });
+export const Route = createFileRoute("/dash")({
+  head: () => privateHead("Owner desk"),
+  component: DashPage,
+});
 
 function DashPage() {
   const deskRole = useRentalStore((s) => s.deskRole);

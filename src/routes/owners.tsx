@@ -14,8 +14,29 @@ import {
 } from "@/lib/rental";
 import { useRentalStore } from "@/lib/rental-store";
 import { cn } from "@/lib/utils";
+import { LOCAL_AREA, pageHead, serviceLd } from "@/lib/seo";
 
-export const Route = createFileRoute("/owners")({ component: OwnersPage });
+export const Route = createFileRoute("/owners")({
+  head: () =>
+    pageHead({
+      title: "Sell your house quietly or rent it fairly | Porchlight",
+      description:
+        "House owners in Vidalia and Toombs, GA: sell quietly without the listing machine, or keep the house, rent it fairly to a family already waiting, cash out later.",
+      path: "/owners",
+      jsonLd: [
+        serviceLd({
+          name: "Sell quietly or rent fairly",
+          description:
+            "House owners in Vidalia and Toombs, GA: sell quietly without the listing machine, or keep the house, rent it fairly to a family already waiting, cash out later.",
+          path: "/owners",
+          serviceType: "Quiet house sale and fair-rent management for owners",
+          areaServed: LOCAL_AREA,
+          audience: "House owners",
+        }),
+      ],
+    }),
+  component: OwnersPage,
+});
 
 function OwnersPage() {
   const upsertOwner = useRentalStore((s) => s.upsertOwner);

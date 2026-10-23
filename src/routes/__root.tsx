@@ -8,6 +8,7 @@ import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { AppFrame } from "@/components/app-frame";
 import appCss from "../styles.css?url";
+import { ORGANIZATION_LD } from "@/lib/seo";
 
 const APP_NAME = "Porchlight";
 
@@ -23,6 +24,7 @@ export const Route = createRootRoute({
         content:
           "Hunt a house before it lists in Vidalia / Toombs. Help working families keep use of a home before Medicaid estate recovery becomes a crisis. Rent it fairly to a neighbor already waiting.",
       },
+      { "script:ld+json": ORGANIZATION_LD },
     ],
     links: [
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },

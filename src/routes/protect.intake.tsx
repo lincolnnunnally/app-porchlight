@@ -10,8 +10,10 @@ import {
 } from "@/lib/steward";
 import { useStewardStore } from "@/lib/steward-store";
 import { cn } from "@/lib/utils";
+import { privateHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/protect/intake")({
+  head: () => privateHead("Facts"),
   component: IntakePage,
 });
 

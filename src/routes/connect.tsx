@@ -6,8 +6,27 @@ import { Field, Input, Textarea } from "@/components/ui/field";
 import { useRentalStore } from "@/lib/rental-store";
 import { useStewardStore } from "@/lib/steward-store";
 import { cn } from "@/lib/utils";
+import { GEORGIA, pageHead, serviceLd } from "@/lib/seo";
 
 export const Route = createFileRoute("/connect")({
+  head: () =>
+    pageHead({
+      title: "For pastors and neighbors: share the explainer | Porchlight",
+      description:
+        "Pastors and neighbors who know a family worried about the house: share the Georgia estate recovery explainer, not a pitch, or tell us a family needs a home.",
+      path: "/connect",
+      jsonLd: [
+        serviceLd({
+          name: "For pastors and neighbors",
+          description:
+            "Pastors and neighbors who know a family worried about the house: share the Georgia estate recovery explainer, not a pitch, or tell us a family needs a home.",
+          path: "/connect",
+          serviceType: "Referral guide for Georgia estate recovery education and fair-rent housing",
+          areaServed: GEORGIA,
+          audience: "Pastors and neighbors",
+        }),
+      ],
+    }),
   component: ConnectPage,
 });
 
